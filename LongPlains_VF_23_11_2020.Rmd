@@ -1,0 +1,2725 @@
+---
+# title: "Long Plains"
+# author: "Jackie Ouzman"
+# date: "30/10/2020"
+# output:
+# word_document: default
+# html_document:
+# code_folding: hide
+# df_print: paged
+title: "Long Plains"
+author: "Jackie Ouzman"
+date: "30/10/2020"
+output:
+  html_document:
+    code_folding: hide
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r lib, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(tidyverse)
+library(readr)
+library(lubridate)
+library(DT)
+library(sp)
+
+
+library(rgdal)
+library(sf)
+
+#install.packages("plotKML")
+library(plotKML)
+library(knitr)
+library(png)
+
+library(readxl)
+
+
+library(ggmap)
+library(maps)
+library(mapdata)
+
+library(raster)
+
+
+
+```
+
+# Long Plains VF trial
+
+## Biomass readings
+
+Crop circle and Phenom survey undertaken by Damian and Willie on XX/10/2020
+Crop circle and Phenom survey undertaken by Damian on 6/11/2020
+
+**Raw data**
+
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\CC\Crop Circle LP 2020 pre graze"
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\CC\Phenom LP 2020 pre graze"
+
+
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\CC\Crop Circle post graze"
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\CC\Phenom post graze"
+
+**Rasters** 
+
+- "W:\VF\LongPlain\CC\Crop Circle LP 2020 pre graze\LAI\Vesper\cc_all_HighDensity_LAI_VI_PRED_2m.tif"
+- "W:\VF\LongPlain\CC\Crop Circle LP 2020 pre graze\NDVI\Vesper\cc_all_HighDensity_NDVI_PRED_2m.tif"
+
+- "W:\VF\LongPlain\CC\Phenom LP 2020 pre graze\Phen_LAI\Vesper\Phen_all_HighDensity_LAI_VI_PRED_2m.tif"
+- "W:\VF\LongPlain\CC\Phenom LP 2020 pre graze\Phen_NDVI\Vesper\cc_all_LAI_VI_HighDensity_NDVI_PRED_2m.tif"
+
+
+
+
+- "W:\VF\LongPlain\CC\Crop Circle post graze\LAI\Vesper\CC_post_graze_HighDensity_LAI_VI_PRED_2m.tif"
+- "W:\VF\LongPlain\CC\Crop Circle post graze\NDVI\Vesper\CC_post_graze_HighDensity_NDVI_PRED_2m.tif"
+
+- "W:\VF\LongPlain\CC\Phenom post graze\Phen_LAI\Vesper\Phenommerged201106_HighDensity_LAI_VI_PRED_2m.tif"
+- "W:\VF\LongPlain\CC\Phenom post graze\Phen_NDVI\Vesper\"Phenommerged201106_HighDensity_NDVI_PRED_2m.tif""
+
+
+Data processing done by Jackie using the following settings:
+
+- Data cleaned and trimmed using PAT QGIS tools, standard default settings used
+
+- Block boundaries drawn based on GPS points
+
+- Block grid of 2m pixel made
+
+- Vesper used for kriging cleaned data
+
+- Vesper setting include; block kriging with a block size of 10m
+
+- Data in below map is displayed as quantile.
+
+## Pre graze maps
+
+```{r cc_pre_trial, echo=FALSE, message=FALSE, warning=FALSE}
+# All defaults
+include_graphics("W:/VF/LongPlain/CC/Pre_graze.png")
+
+
+```
+
+
+
+## Post graze maps
+
+```{r cc_post_trial, echo=FALSE, message=FALSE, warning=FALSE}
+# All defaults
+include_graphics("W:/VF/LongPlain/CC/Post_graze.png")
+
+
+```
+
+## Pre and Post graze map for Phenom LAI (displayed in one map)
+
+Note that these were done on different days and and not calibrated to a common value.
+This means that you can only compare patterns within the block for the same day.
+
+```{r cc_pre and post_trial, echo=FALSE, message=FALSE, warning=FALSE}
+# All defaults
+include_graphics("W:/VF/LongPlain/CC/Pre and Post graze phenom LAI.png")
+
+
+```
+
+
+## Additional task to be revisited in 2021.
+
+Create a calibration curve for biomass cuts vs phenom and crop circle data.
+
+Using the sampling location for the biomass cuts I will extract grid values.
+
+Extracting grid values can be done in a few ways.
+
+1. the exact point 
+
+2. an average of grid cells around the point.
+
+Calibration curves need to instrument and day specific.
+
+This will mean that we only have a few data points for each calibration which my reduce the confidence in the analysis.
+
+
+## Location of fences
+
+All hard fence corners and water points were GPS.
+
+VF locations supplied by Agersens via email.
+
+Raw data located:
+
+"\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\LP Blk Bound\VF_boundary_raw\cood_agersens.csv"
+
+
+All points turned into shape files and mapped:
+
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\LP Blk Bound\LongPlainVF_bound.shp" 
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\LP Blk Bound\LongPlain_GDA_internal_bound.shp"
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\LP Blk Bound\Water_pts.shp"
+
+
+```{r boundary map, echo=FALSE, message=FALSE, warning=FALSE}
+# All defaults
+include_graphics("W:/VF/LongPlain/LP Blk Bound/Boundary_map.png")
+
+
+```
+
+## Biomass measures / pasture cuts
+
+- 19/10/2020        Pre graze weeds data was collected with no GPS 
+
+- 26/10/2020        Biomass data with GPS pts and
+                    Total weeds with GPS pts 
+
+- 30/10/2020        Biomass with GPS pts and
+                    Total weeds with GPS pts
+
+- 03/11/2020        Biomass data with GPS pts
+                    There are a few 0 values  
+                    No weeds data  
+
+- 06/11/2020        Biomass and weed data with GPS pts 
+                   
+
+- 09/11/2020        Weed data with GPS pts 
+
+
+
+This has been collated into one excel file with multiple tabs and summary tab.
+
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\biomass\Biomass samples 2020_Jax.xlsx" 
+
+
+## Location of biomass sampling
+
+```{r biomass new, message=FALSE, warning=FALSE, include=FALSE}
+
+#need to make df into spatial object for graphing and try clipping to paddock boundary
+long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
+long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
+
+####
+
+Biomass_samples_2020_all <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
+    sheet = "All_Biomass", col_types = c("date", 
+        "text", "text", "numeric", "numeric", 
+        "numeric", "numeric", "text", "text", 
+        "numeric", "numeric"))
+#unique(Biomass_samples_2020_all$Date)
+
+#turn theses df into shapefiles
+Biomass_samples_2020_all_sf <-
+      st_as_sf(Biomass_samples_2020_all,
+               coords = c("X", "Y"),
+               crs = 4326,
+               agr = "constant")
+
+Biomass_samples_2020_all_sf_tran <-
+      st_transform(Biomass_samples_2020_all_sf, crs = 28354)
+
+str(Biomass_samples_2020_all_sf_tran)
+
+biomass26_10 <- Biomass_samples_2020_all_sf_tran %>% 
+  filter(Date ==  as.Date("2020-10-26")) #%>% 
+  #select(Date, geometry)
+biomass30_10 <- Biomass_samples_2020_all_sf_tran %>% 
+  filter(Date ==  as.Date("2020-10-30")) #%>% 
+  #select(Date, geometry)
+biomass3_11 <- Biomass_samples_2020_all_sf_tran %>% 
+  filter(Date ==  as.Date("2020-11-03")) #%>% 
+  #select(Date, geometry)
+biomass06_11 <- Biomass_samples_2020_all_sf_tran %>% 
+  filter(Date ==  as.Date("2020-11-06")) #%>% 
+  #select(Date, geometry)
+
+
+
+
+```
+
+
+
+```{r biomass_plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+
+ggplot() +
+    geom_sf(data = long_plains, color = "black", fill = NA) +
+    geom_sf(data= biomass26_10, aes(color="A"), show.legend = "point") +
+    geom_sf(data= biomass30_10, aes(color="B"), show.legend = "point") +
+    geom_sf(data= biomass3_11, aes(color="C"), show.legend = "point") +
+    geom_sf(data= biomass06_11, aes(color="D"), show.legend = "point") +
+    scale_color_manual(values = c("A" = "red", "B" = "blue",  "C" = "grey" ,  "D" = "black"),
+                       labels = c("26/10", "30/10", "3/11","6/11" ),
+                       name = "Biomass cuts")+
+  theme_bw()+
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+```{r biomass_location extract, message=FALSE, warning=FALSE, include=FALSE}
+
+#import the raster pre graze phenom
+pre_graze_phenom_LAI <- raster("W:/VF/LongPlain/CC/Phenom LP 2020 pre graze/Phen_LAI/Vesper/Phen_all_HighDensity_LAI_VI_PRED_2m.tif")
+pre_graze_phenom_NDVI <- raster("W:/VF/LongPlain/CC/Phenom LP 2020 pre graze/Phen_NDVI/Vesper/cc_all_LAI_VI_HighDensity_NDVI_PRED_2m.tif")
+
+
+#import the raster pre graze cc
+pre_graze_cc_LAI <- raster("W:/VF/LongPlain/CC/Crop Circle LP 2020 pre graze/LAI/Vesper/cc_all_HighDensity_LAI_VI_PRED_2m.tif")
+pre_graze_cc_NDVI <- raster("W:/VF/LongPlain/CC/Crop Circle LP 2020 pre graze/NDVI/Vesper/cc_all_HighDensity_NDVI_PRED_2m.tif")
+
+
+#import the raster post graze phenom
+post_graze_phenom_LAI <- raster("W:/VF/LongPlain/CC/Phenom post graze/LAI/Vesper/Phenommerged201106_HighDensity_LAI_VI_PRED_2m.tif")
+post_graze_phenom_NDVI <- raster("W:/VF/LongPlain/CC/Phenom post graze/NDVI/Vesper/Phenommerged201106_HighDensity_NDVI_PRED_2m.tif")
+
+
+
+#import the raster post graze cc
+post_graze_cc_LAI <- raster("W:/VF/LongPlain/CC/CC post graze/LAI/Vesper/CC_post_graze_HighDensity_LAI_VI_PRED_2m.tif")
+post_graze_cc_NDVI <- raster("W:/VF/LongPlain/CC/CC post graze/NDVI/Vesper/CC_post_graze_HighDensity_NDVI_PRED_2m.tif")
+
+
+# make a data frame with sptail data
+Biomass_samples_2020_all <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
+                                       sheet = "All_Biomass", col_types = c("date", 
+                                                                            "text", "text", "numeric", "numeric", 
+                                                                            "numeric", "numeric", "text", "text", 
+                                                                            "numeric", "numeric"))
+#unique(Biomass_samples_2020_all$Date)
+
+#turn theses df into shapefiles
+Biomass_samples_2020_all_sf <-
+  st_as_sf(Biomass_samples_2020_all,
+           coords = c("X", "Y"),
+           crs = 4326,
+           agr = "constant")
+
+Biomass_samples_2020_all_sf_tran <-
+  st_transform(Biomass_samples_2020_all_sf, crs = 28354)
+#Biomass_samples_2020_all_sf
+#Biomass_samples_2020_all_sf_tran
+
+crs(pre_graze_phenom_LAI)
+crs(Biomass_samples_2020_all_sf_tran)
+#add a refernce ID to the Biomass_samples_2020_all_sf_tran
+Biomass_samples_2020_all_sf_tran$ID <- seq.int(nrow(Biomass_samples_2020_all_sf_tran))
+
+##############################################################################################################
+#extact pre graze phenom data
+
+extract_pre_graze_phenom_LAI <- extract(pre_graze_phenom_LAI, Biomass_samples_2020_all_sf_tran)
+c_extract_pre_graze_phenom_LAI <- cbind(Biomass_samples_2020_all_sf_tran,extract_pre_graze_phenom_LAI)
+
+c_extract_pre_graze_phenom_LAI <- dplyr::select(c_extract_pre_graze_phenom_LAI, ID, extract_pre_graze_phenom_LAI )
+c_extract_pre_graze_phenom_LAI <- as.data.frame(c_extract_pre_graze_phenom_LAI)
+
+
+extract_pre_graze_phenom_NDVI <- extract(pre_graze_phenom_NDVI, Biomass_samples_2020_all_sf_tran)
+c_extract_pre_graze_phenom_NDVI <- cbind(Biomass_samples_2020_all_sf_tran,extract_pre_graze_phenom_NDVI)
+
+c_extract_pre_graze_phenom_NDVI <- dplyr::select(c_extract_pre_graze_phenom_NDVI, ID,  extract_pre_graze_phenom_NDVI )
+c_extract_pre_graze_phenom_NDVI <- as.data.frame(c_extract_pre_graze_phenom_NDVI)
+
+## add the pre graze phenom data together
+extract_pre_graze_phenom <- left_join(c_extract_pre_graze_phenom_LAI, c_extract_pre_graze_phenom_NDVI)
+
+extract_pre_graze_phenom <- extract_pre_graze_phenom %>% 
+  dplyr::select(- geometry)
+
+rm(c_extract_pre_graze_phenom_LAI,c_extract_pre_graze_phenom_NDVI, pre_graze_phenom_NDVI, pre_graze_phenom_LAI )
+
+##############################################################################################################
+#extract pre graze cc data
+
+extract_pre_graze_cc_LAI <- extract(pre_graze_cc_LAI, Biomass_samples_2020_all_sf_tran)
+c_extract_pre_graze_cc_LAI <- cbind(Biomass_samples_2020_all_sf_tran,extract_pre_graze_cc_LAI)
+
+c_extract_pre_graze_cc_LAI <- dplyr::select(c_extract_pre_graze_cc_LAI, ID, extract_pre_graze_cc_LAI )
+c_extract_pre_graze_cc_LAI <- as.data.frame(c_extract_pre_graze_cc_LAI)
+
+
+extract_pre_graze_cc_NDVI <- extract(pre_graze_cc_NDVI, Biomass_samples_2020_all_sf_tran)
+c_extract_pre_graze_cc_NDVI <- cbind(Biomass_samples_2020_all_sf_tran,extract_pre_graze_cc_NDVI)
+
+c_extract_pre_graze_cc_NDVI <- dplyr::select(c_extract_pre_graze_cc_NDVI, ID,  extract_pre_graze_cc_NDVI )
+c_extract_pre_graze_cc_NDVI <- as.data.frame(c_extract_pre_graze_cc_NDVI)
+
+## add the pre graze phenom data together
+extract_pre_graze_cc <- left_join(c_extract_pre_graze_cc_LAI, c_extract_pre_graze_cc_NDVI)
+
+extract_pre_graze_cc <- extract_pre_graze_cc %>% 
+  dplyr::select(- geometry)
+rm(c_extract_pre_graze_cc_LAI,c_extract_pre_graze_cc_NDVI, pre_graze_cc_NDVI, pre_graze_cc_LAI )
+
+## add the pre graze  data together
+extract_pre_graze <- left_join(extract_pre_graze_cc, extract_pre_graze_phenom)
+rm(extract_pre_graze_cc,extract_pre_graze_phenom )
+
+
+##############################################################################################################
+#extact post graze phenom data
+
+extract_post_graze_phenom_LAI <- extract(post_graze_phenom_LAI, Biomass_samples_2020_all_sf_tran)
+c_extract_post_graze_phenom_LAI <- cbind(Biomass_samples_2020_all_sf_tran,extract_post_graze_phenom_LAI)
+
+c_extract_post_graze_phenom_LAI <- dplyr::select(c_extract_post_graze_phenom_LAI, ID, extract_post_graze_phenom_LAI )
+c_extract_post_graze_phenom_LAI <- as.data.frame(c_extract_post_graze_phenom_LAI)
+
+
+extract_post_graze_phenom_NDVI <- extract(post_graze_phenom_NDVI, Biomass_samples_2020_all_sf_tran)
+c_extract_post_graze_phenom_NDVI <- cbind(Biomass_samples_2020_all_sf_tran,extract_post_graze_phenom_NDVI)
+
+c_extract_post_graze_phenom_NDVI <- dplyr::select(c_extract_post_graze_phenom_NDVI, ID,  extract_post_graze_phenom_NDVI )
+c_extract_post_graze_phenom_NDVI <- as.data.frame(c_extract_post_graze_phenom_NDVI)
+
+## add the pre graze phenom data together
+extract_post_graze_phenom <- left_join(c_extract_post_graze_phenom_LAI, c_extract_post_graze_phenom_NDVI)
+
+extract_post_graze_phenom <- extract_post_graze_phenom %>% 
+  dplyr::select(- geometry)
+
+rm(c_extract_post_graze_phenom_LAI,c_extract_post_graze_phenom_NDVI, post_graze_phenom_NDVI, post_graze_phenom_LAI )
+
+##############################################################################################################
+#extract post graze cc data
+
+extract_post_graze_cc_LAI <- extract(post_graze_cc_LAI, Biomass_samples_2020_all_sf_tran)
+c_extract_post_graze_cc_LAI <- cbind(Biomass_samples_2020_all_sf_tran,extract_post_graze_cc_LAI)
+
+c_extract_post_graze_cc_LAI <- dplyr::select(c_extract_post_graze_cc_LAI, ID, extract_post_graze_cc_LAI )
+c_extract_post_graze_cc_LAI <- as.data.frame(c_extract_post_graze_cc_LAI)
+
+
+extract_post_graze_cc_NDVI <- extract(post_graze_cc_NDVI, Biomass_samples_2020_all_sf_tran)
+c_extract_post_graze_cc_NDVI <- cbind(Biomass_samples_2020_all_sf_tran,extract_post_graze_cc_NDVI)
+
+c_extract_post_graze_cc_NDVI <- dplyr::select(c_extract_post_graze_cc_NDVI, ID,  extract_post_graze_cc_NDVI )
+c_extract_post_graze_cc_NDVI <- as.data.frame(c_extract_post_graze_cc_NDVI)
+
+## add the pre graze phenom data together
+extract_post_graze_cc <- left_join(c_extract_post_graze_cc_LAI, c_extract_post_graze_cc_NDVI)
+
+extract_post_graze_cc <- extract_post_graze_cc %>% 
+  dplyr::select(- geometry)
+
+
+
+## add the pre graze  data together
+extract_post_graze <- left_join(extract_post_graze_cc, extract_post_graze_phenom)
+# rm(c_extract_post_graze_cc_LAI,c_extract_post_graze_cc_NDVI, post_graze_cc_NDVI, post_graze_cc_LAI )
+# rm(extract_post_graze_cc,extract_post_graze_phenom )
+
+
+## add the pre and post graze  data together
+extract_pre_post_graze <- left_join(extract_post_graze, extract_pre_graze)
+
+## make this long
+extract_pre_post_graze_long <- extract_pre_post_graze%>%
+  pivot_longer(!ID, names_to = "survey_type", values_to = "value")
+
+# add to the larger dataset of with field data
+
+
+Biomass_samples_2020 <- as.data.frame(Biomass_samples_2020_all_sf_tran) %>% 
+  dplyr::select(-geometry)
+
+extract_pre_post_graze <- left_join(extract_pre_post_graze_long, Biomass_samples_2020 )
+
+
+extract_pre_post_graze <- extract_pre_post_graze %>% 
+  dplyr::mutate(
+    pre_post = case_when(
+      survey_type == "extract_post_graze_cc_LAI" ~ "post",
+      survey_type == "extract_post_graze_cc_NDVI"  ~ "post",
+      
+      survey_type == "extract_post_graze_phenom_LAI" ~ "post",
+      survey_type == "extract_post_graze_phenom_NDVI" ~ "post",
+      
+      survey_type == "extract_pre_graze_phenom_LAI"  ~ "pre",
+      survey_type == "extract_pre_graze_phenom_NDVI"  ~ "pre",
+     
+       survey_type == "extract_pre_graze_cc_NDVI"  ~ "pre",
+      survey_type == "extract_pre_graze_cc_LAI"  ~ "pre",
+    )
+  )
+
+extract_pre_post_graze <- extract_pre_post_graze %>% 
+  dplyr::mutate(
+    cc_phenom = case_when(
+      survey_type == "extract_post_graze_cc_LAI" ~ "cc",
+      survey_type == "extract_post_graze_cc_NDVI"  ~ "cc",
+      
+      survey_type == "extract_post_graze_phenom_LAI" ~ "phenom",
+      survey_type == "extract_post_graze_phenom_NDVI" ~ "phenom",
+      
+      survey_type == "extract_pre_graze_phenom_LAI"  ~ "phenom",
+      survey_type == "extract_pre_graze_phenom_NDVI"  ~ "phenom",
+      
+      survey_type == "extract_pre_graze_cc_NDVI"  ~ "cc",
+      survey_type == "extract_pre_graze_cc_LAI"  ~ "cc",
+    )
+  )
+
+extract_pre_post_graze <- extract_pre_post_graze %>% 
+  dplyr::mutate(
+    NDVI_LAI = case_when(
+      survey_type == "extract_post_graze_cc_LAI" ~ "LAI",
+      survey_type == "extract_post_graze_cc_NDVI"  ~ "NDVI",
+      
+      survey_type == "extract_post_graze_phenom_LAI" ~ "LAI",
+      survey_type == "extract_post_graze_phenom_NDVI" ~ "NDVI",
+      
+      survey_type == "extract_pre_graze_phenom_LAI"  ~ "LAI",
+      survey_type == "extract_pre_graze_phenom_NDVI"  ~ "NDVI",
+      
+      survey_type == "extract_pre_graze_cc_NDVI"  ~ "NDVI",
+      survey_type == "extract_pre_graze_cc_LAI"  ~ "LAI",
+    )
+  )
+
+
+
+
+extract_pre_post_graze$date_factor <- as.factor(extract_pre_post_graze$Date)
+
+```
+
+## Plots of biomass vs crop circle or phenom survey data
+
+This will need more work.
+
+The data is grouped into days the biomass samples were taken and then survey type.
+
+The x axis is the biomass cut taken in the field 
+
+y axis is the value of the survey reading LAI or NDVI
+
+For most of the plots there doesn't seem to be a grouping between pre and post cuts or readings.
+
+Instead there seems to be a range of values pre grazing and post grazing.
+
+
+
+
+```{r biomass_location extract plots, echo=FALSE, message=FALSE, warning=FALSE}
+
+date_biomass_cut26 = as.Date("2020-10-26")
+date_biomass_cut30 = as.Date("2020-10-30")
+date_biomass_cut03 = as.Date("2020-11-03")
+date_biomass_cut06 = as.Date("2020-11-06")
+
+extract_pre_post_graze %>%
+  dplyr::filter(Date == date_biomass_cut26) %>% 
+  ggplot(aes(x = `biomass g`  , y = value, colour = pre_post)) +
+  geom_point()+
+  facet_wrap(NDVI_LAI~ cc_phenom)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = paste0("biomass collected on ", date_biomass_cut26),
+    y = "survey data",
+    title = paste(date_biomass_cut26)
+  )
+
+extract_pre_post_graze %>%
+  dplyr::filter(Date == date_biomass_cut30) %>% 
+  ggplot(aes(x = `biomass g`  , y = value, colour = pre_post)) +
+  geom_point()+
+  facet_wrap(NDVI_LAI~ cc_phenom)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = paste0("biomass collected on ", date_biomass_cut30),
+    y = "survey data",
+    title = paste(date_biomass_cut30)
+  )
+
+
+extract_pre_post_graze %>%
+  dplyr::filter(Date == date_biomass_cut03) %>% 
+  ggplot(aes(x = `biomass g`  , y = value, colour = pre_post)) +
+  geom_point()+
+  facet_wrap(NDVI_LAI~ cc_phenom)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = paste0("biomass collected on ", date_biomass_cut03),
+    y = "survey data",
+    title = paste(date_biomass_cut03)
+  )
+
+extract_pre_post_graze %>%
+  dplyr::filter(Date == date_biomass_cut06) %>% 
+  ggplot(aes(x = `biomass g`  , y = value, colour = pre_post)) +
+  geom_point()+
+  facet_wrap(NDVI_LAI~ cc_phenom)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = paste0("biomass collected on ", date_biomass_cut06),
+    y = "survey data",
+    title = paste(date_biomass_cut06)
+  )
+
+
+```
+
+
+
+
+### Average biomass cut values for select dates
+
+```{r biomass cuts ave, echo=FALSE, message=FALSE, warning=FALSE}
+
+Biomass_samples_2020_all <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
+    sheet = "All_Biomass", col_types = c("date", 
+        "text", "text", "numeric", "numeric", 
+        "numeric", "numeric", "text", "text", 
+        "numeric", "numeric"))
+
+
+
+biomass_ave <- Biomass_samples_2020_all %>%
+  group_by(Date, Paddock, timing ) %>%
+  summarise(average_biomass = mean(`biomass g`, na.rm = TRUE),
+            SD_biomass = sd(`biomass g`, na.rm = TRUE)) %>%
+  mutate(average_biomass = round(average_biomass,2),
+         SD_biomass = round(SD_biomass,2))
+
+
+
+```
+
+
+```{r biomass cuts graph, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+subset_biomass_ave <- biomass_ave %>%
+  filter(Date == as.Date("2020-10-26")& Paddock == "VF1" |
+  Date == as.Date("2020-10-30")& Paddock == "VF2" |
+  Date == as.Date("2020-11-03")& Paddock == "VF3" |
+  Date == as.Date("2020-11-06")& Paddock == "VF4" )
+
+library(formattable)
+subset_biomass_ave %>% 
+  formattable()
+
+
+# DT::datatable(head(subset_biomass_ave, 10),
+#   fillContainer = FALSE, options = list(pageLength = 4))
+
+```
+
+
+
+
+
+
+
+## Weeds counts
+
+- Pre grazing weed data done on 19/10 no GPS location
+
+- 26/10/2020 - no GPS - total counts 
+
+- 30/10/2020 - no GPS - total counts
+
+- 03/11/2020 - no GPS - total counts
+
+- 06/11/2020 - no GPS - total counts
+
+- 9/11/2020 - GPS - post grazing  
+
+
+This has been collated into one excel file with multiple tabs and summary tab.
+
+- "\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\biomass\Biomass samples 2020_Jax.xlsx" 
+
+
+
+
+```{r weeds_09_11_data, message=FALSE, warning=FALSE, include=FALSE}
+
+#need to make df into spatial object for graphing and try clipping to paddock boundary
+long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
+long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
+
+
+
+
+weeds <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
+    sheet = "All_Weeds", col_types = c("date", 
+        "text", "text", "numeric", "numeric", "text", 
+        "text", "text", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "text"))
+
+
+weeds_GPS <- weeds %>%  filter(X != "NA")
+
+
+weeds_GPS_sf <-
+      st_as_sf(weeds_GPS,
+               coords = c("X", "Y"),
+               crs = 4326,
+               agr = "constant")
+
+weeds_GPS_sf_tran <-
+      st_transform(weeds_GPS_sf, crs = 28354)
+
+
+```
+
+
+```{r weeds_19_11_plot, echo=FALSE, message=FALSE, warning=FALSE}
+#unique(weeds_GPS_sf_tran$Date)
+
+
+weeds26_10 <- weeds_GPS_sf_tran %>% 
+  filter(Date ==  as.Date("2020-10-26")) 
+weeds30_10 <- weeds_GPS_sf_tran %>% 
+  filter(Date ==  as.Date("2020-10-30")) 
+weeds06_11 <- weeds_GPS_sf_tran %>% 
+  filter(Date ==  as.Date("2020-11-06")) 
+weeds09_11 <- weeds_GPS_sf_tran %>% 
+  filter(Date ==  as.Date("2020-11-09")) 
+
+
+
+ggplot() +
+    geom_sf(data = long_plains, color = "black", fill = NA) +
+    geom_sf(data= weeds26_10, aes(color="A"), show.legend = "point") +
+    geom_sf(data= weeds30_10, aes(color="B"), show.legend = "point") +
+    geom_sf(data= weeds06_11, aes(color="C"), show.legend = "point") +
+    geom_sf(data= weeds09_11, aes(color="D"), show.legend = "point") +
+    scale_color_manual(values = c("A" = "red", "B" = "blue",  "C" = "grey" ,  "D" = "black"),
+                       labels = c("26/10", "30/10", "6/11","9/11" ),
+                       name = "weed counts")+
+  theme_bw()+
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())
+
+
+
+
+
+
+```
+
+
+## Plot of weed counts pre graze
+
+Total weeds counts
+
+Ryegrass weed counts
+
+Sow Thistle weed counts
+
+ 
+Plotted for 3 locations buffer, control and VF
+
+
+
+```{r weeds count clm Plots1, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+#str(weeds)
+weed_pre_graze <- weeds %>% 
+  filter(timing == "pre_graze")
+
+
+weed_av_pre_graze <- weeds %>% 
+  filter(timing == "pre_graze") %>% 
+  group_by(Location) %>% 
+  summarise(Total_weed_av = mean(total_weeds, na.rm = TRUE),
+            Ryegrass_av = mean(`Rye Grass`, na.rm = TRUE),
+             Sow_thistle_av = mean(`Sow_thistle`, na.rm = TRUE),
+            Brassica_av = mean(`Brassica`, na.rm = TRUE))
+
+#weed_av_pre_graze
+
+weed_av_pre_graze %>%
+  ggplot(aes(x = Location , y = Total_weed_av)) +
+  geom_col()+
+  theme_classic() +
+    theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Average total weed count per sampling area",
+    title = paste("Total weed counts - pre graze")
+  )
+
+weed_av_pre_graze %>%
+  ggplot(aes(x = Location , y = Ryegrass_av)) +
+  geom_col()+
+  theme_classic() +
+    theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Average Ryegrass plants per sampling area",
+    title = paste("Number of Ryegrass plants - pre graze")
+  )
+
+weed_av_pre_graze %>%
+  ggplot(aes(x = Location , y = Sow_thistle_av)) +
+  geom_col()+
+  theme_classic() +
+    theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Average Sow Thistle plants per sampling area ",
+    title = paste("Number of Sow Thistle plants - pre graze")
+  )
+
+```
+
+
+### ANOVA for pre graze 3 locations
+
+Total weeds
+
+**Rick note the line in the analysis that says - 
+Fit: aov(formula = total_weeds ~ Location, data = weed_pre_graze)**
+
+```{r weeds count pre graze stats, echo=FALSE, message=FALSE, warning=FALSE}
+
+#weed_pre_graze
+table(weed_pre_graze$Location, weed_pre_graze$total_weeds)
+
+weed_pre_graze_aov <- aov(total_weeds ~ Location , data = weed_pre_graze)
+
+summary(weed_pre_graze_aov)
+TukeyHSD(weed_pre_graze_aov)
+
+```
+
+### ANOVA for pre graze 2 locations 
+
+Total weeds counts
+
+Ryegrass weed counts
+
+Sow Thistle weed counts
+
+ 
+Plotted for 2 locations Control and VF
+
+
+
+
+#### Total weeds counts
+
+```{r weeds count pre graze stats no buffer total weeds, echo=TRUE, message=FALSE, warning=FALSE}
+
+weed_pre_graze_no_buffer <- filter(weed_pre_graze, Location != "buffer")
+table(weed_pre_graze_no_buffer$Location, weed_pre_graze_no_buffer$total_weeds)
+
+weed_pre_graze_no_buffer_aov <- aov(total_weeds ~ Location , data = weed_pre_graze_no_buffer)
+
+summary(weed_pre_graze_no_buffer_aov)
+
+
+```
+
+#### Rye Grass (plants)
+
+```{r weeds count pre graze stats no buffer rye grass, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+table(weed_pre_graze_no_buffer$Location, weed_pre_graze_no_buffer$`Rye Grass`)
+
+Rye_grass_pre_graze_no_buffer_aov <- aov(`Rye Grass` ~ Location , data = weed_pre_graze_no_buffer)
+
+summary(Rye_grass_pre_graze_no_buffer_aov)
+
+
+```
+
+### Sow thistle
+
+```{r weeds count pre graze stats no buffer sowthis, echo=TRUE, message=FALSE, warning=FALSE}
+#weed_pre_graze_no_buffer
+
+
+table(weed_pre_graze_no_buffer$Location, weed_pre_graze_no_buffer$`Sow_thistle`)
+
+Sow_thistle_pre_graze_no_buffer_aov <- aov(`Sow_thistle` ~ Location , data = weed_pre_graze_no_buffer)
+
+summary(Sow_thistle_pre_graze_no_buffer_aov)
+
+
+```
+
+
+## Plot of weed counts post graze
+
+Total weeds counts
+
+Ryegrass weed counts
+
+Sow Thistle weed counts
+
+ 
+Plotted for 3 locations buffer, control and VF
+
+
+
+```{r weeds count clm Plots, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+#str(weeds)
+weed_post_graze <- weeds %>% 
+  filter(timing == "last day of trial")
+
+
+weed_post_av_graze <- weeds %>% 
+  filter(timing == "last day of trial") %>% 
+  group_by(Location) %>% 
+  summarise(Total_weed_av = mean(total_weeds, na.rm = TRUE),
+            Ryegrass_av = mean(`Rye Grass`, na.rm = TRUE),
+             Sow_thistle_av = mean(`Sow_thistle`, na.rm = TRUE),
+            Brassica_av = mean(`Brassica`, na.rm = TRUE))
+
+
+
+weed_post_av_graze %>%
+  ggplot(aes(x = Location , y = Total_weed_av)) +
+  geom_col()+
+  theme_classic() +
+    theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Average total weed count per sampling area",
+    title = paste("Total weeds - post graze")
+  )
+
+weed_post_av_graze %>%
+  ggplot(aes(x = Location , y = Ryegrass_av)) +
+  geom_col()+
+  theme_classic() +
+    theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Average Ryegrass plants per sampling area",
+    title = paste("Ryegrass - post graze")
+  )
+
+weed_post_av_graze %>%
+  ggplot(aes(x = Location , y = Sow_thistle_av)) +
+  geom_col()+
+  theme_classic() +
+    theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Average Sow Thistle plants per sampling area ",
+    title = paste("Sow Thistle - post graze")
+  )
+
+```
+
+
+
+### ANOVA for post graze 3 locations
+
+Total weeds 3 locations
+
+```{r weeds count post graze stats, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+table(weed_post_graze$Location, weed_post_graze$total_weeds)
+
+weed_post_graze_aov <- aov(total_weeds ~ Location , data = weed_post_graze)
+
+summary(weed_post_graze_aov)
+TukeyHSD(weed_post_graze_aov)
+
+```
+
+
+
+### ANOVA for post graze 2 locations 
+
+Total weeds counts
+
+Ryegrass weed counts
+
+Sow Thistle weed counts
+
+ 
+Plotted for 2 locations Control and VF
+
+
+
+
+#### Total weeds counts
+
+```{r weeds count post graze stats no buffer total weeds, echo=TRUE, message=FALSE, warning=FALSE}
+
+weed_post_graze_no_buffer <- filter(weed_post_graze, Location != "buffer")
+table(weed_post_graze_no_buffer$Location, weed_post_graze_no_buffer$total_weeds)
+
+weed_post_graze_no_buffer_aov <- aov(total_weeds ~ Location , data = weed_post_graze_no_buffer)
+
+summary(weed_post_graze_no_buffer_aov)
+
+
+```
+
+
+####  Ryegrass
+
+```{r weeds count post graze stats no buffer ryegrass, echo=TRUE, message=FALSE, warning=FALSE}
+
+weed_post_graze_no_buffer <- filter(weed_post_graze, Location != "buffer")
+table(weed_post_graze_no_buffer$Location, weed_post_graze_no_buffer$`Rye Grass`)
+
+weed_post_graze_no_buffer_aov <- aov(`Rye Grass` ~ Location , data = weed_post_graze_no_buffer)
+
+summary(weed_post_graze_no_buffer_aov)
+
+
+```
+
+
+####  Ryegrass heads
+
+Rick this is what you were after, Ryegrass head ANOVA analysis
+
+
+```{r weeds count pre graze stats no buffer ryegrass, echo=TRUE, message=FALSE, warning=FALSE}
+
+weed_post_graze_no_buffer <- filter(weed_post_graze, Location != "buffer")
+table(weed_post_graze_no_buffer$Location, weed_post_graze_no_buffer$`heads`)
+
+weed_post_graze_no_buffer_aov <- aov(`heads` ~ Location , data = weed_post_graze_no_buffer)
+
+summary(weed_post_graze_no_buffer_aov)
+
+
+```
+
+
+## Pre and post grazing plots, side by side plots.
+
+Displayed as bar graphs and box and whisker plots, for:
+
+- Ryegrass 
+- Ryegrass head
+- Total weeds
+- Sow Thistle
+
+Note I have filtered the data so the plots only display data from the Control vs VF sampling areas.
+
+This can be easily changed to display the control buffer and VF locations
+
+Note that the Ryegrass head measures were only taken at post grazing sampling.
+
+We have more total weeds data that is not displayed
+
+
+```{r weeds count box Plots, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+weeds$timing_pre_post = factor(weeds$timing, 
+                               levels=c('pre_graze',
+                                        '1 day post fence 2 activation',
+                                        'day of fence 3 activation',
+                                        '3 days before end of trial', 
+                                        'last day of trial'))
+
+weeds$Location_order = factor(weeds$Location, 
+                               levels=c('control','buffer',
+                                        'VF'))
+# New facet label names 
+timing_labels <- c("pre graze", 
+                   "1 day post fence 2 activation", 
+                   "day of fence 3 activation",
+                   "3 days before end of trial",
+                   "post graze" )
+
+names(timing_labels) <- c('pre_graze',
+                          '1 day post fence 2 activation',
+                          'day of fence 3 activation',
+                          "3 days before end of trial",
+                          'last day of trial')
+
+## bar graph for total weeds
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>%
+  ggplot(aes(x = Location_order , y = total_weeds)) +
+  geom_col()+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Total weed count per sampling area",
+    title = paste("")
+  )
+
+## box and wisker for total weeds
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>%
+  ggplot(aes(x = Location_order , y = total_weeds)) +
+  geom_boxplot(alpha=0.1)+
+  facet_wrap(.~ timing)+
+  geom_point(colour = "blue", alpha = 0.1)+
+  stat_summary(funy = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                width = .75, linetype = "dashed")+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Total weed count per sampling area",
+    title = paste("")
+  )
+
+
+## bar graph for Ryegrass
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>% 
+  ggplot(aes(x = Location_order , y = `Rye Grass`)) +
+  geom_col()+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Number of Ryegrass plants per sampling area",
+    title = paste("")
+  )
+
+## box and wisker for Ryegrass plants
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>% 
+  ggplot(aes(x = Location_order , y = `Rye Grass`)) +
+  geom_boxplot(alpha=0.1)+
+  facet_wrap(.~ timing)+
+  geom_point(colour = "blue", alpha = 0.1)+
+  stat_summary(funy = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                width = .75, linetype = "dashed")+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Number of Ryegrass plants per sampling area",
+    title = paste("")
+  )
+
+
+## bar graph for Ryegrass heads
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>% 
+  ggplot(aes(x = Location_order , y = heads)) +
+  geom_col()+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Number of Ryegrass heads per sampling area",
+    title = paste("")
+  )
+
+## box and wisker for Ryegrass heads
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>% 
+  ggplot(aes(x = Location_order , y = heads)) +
+  geom_boxplot(alpha=0.1)+
+  facet_wrap(.~ timing)+
+  geom_point(colour = "blue", alpha = 0.1)+
+  stat_summary(funy = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                width = .75, linetype = "dashed")+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Number of Ryegrass heads per sampling area",
+    title = paste("")
+  )
+
+
+
+
+## bar graph for Sow_thistle
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>% 
+  ggplot(aes(x = Location_order , y = Sow_thistle)) +
+  geom_col()+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Number of Sow thistle plants per sampling area",
+    title = paste("")
+  )
+
+## box and wisker for Sow_thistle
+weeds %>%
+filter(timing == "pre_graze" | timing =="last day of trial") %>% 
+  filter(Location == "VF"| Location   == "control") %>% 
+  ggplot(aes(x = Location_order , y = Sow_thistle)) +
+  geom_boxplot(alpha=0.1)+
+  facet_wrap(.~ timing)+
+  geom_point(colour = "blue", alpha = 0.1)+
+  stat_summary(funy = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                width = .75, linetype = "dashed")+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Number of Sow thistle plants per sampling area",
+    title = paste("")
+  )
+
+
+
+
+
+
+
+
+
+
+```
+
+
+## Weeds in the VF paddocks 
+
+
+plot and test if there is a significant difference between the average weed numbers in the 3 trial locations.
+
+
+
+```{r total weeds per VF, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+weeds %>% 
+  filter(Paddock == "VF1"   |  
+           Paddock =="VF2"  |   
+           Paddock =="VF3"  |  
+           Paddock =="VF4") %>% 
+  ggplot(aes(x = Paddock , y = total_weeds)) +
+  geom_col()+
+  facet_wrap(.~timing_pre_post,
+             labeller = labeller(timing_pre_post = timing_labels))+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Location",
+    y = "Total number of weeds per sampling area",
+    title = paste("")
+  )
+
+```
+
+
+#### ANOVA one ways analysis
+
+Note sure of the best way to do this.
+
+I don't think you can pool all the data together.
+
+I think the days of interest need to be separated out.
+
+The results indicate that there are no significant differences.
+
+The plots suggest some trends - I suspect the sample size is too small.
+
+In plot 1 - the activation of fence 2.
+
+the total weed count is greater in the newly opened paddock (fence 2) compared to VF 1.
+
+this pattern occurs in plot 2 - the activation of fence 3.
+
+the total weed count is greater in the newly opened paddock (fence 3) compared to VF 1 and 2.
+
+
+In plots 3 and 4 (towards the end of the trial) this pattern cannot be seen.
+
+The newly opened up VF 4 has less weeds than the other VF paddocks.
+
+Perhaps it had less weeds to start with?
+
+Or perhaps the animals spent less time here, they now have the whole paddock to graze and their water source is located at the end of VF 1.
+
+But if you disregard VF4 total weed counts decrease with grazing opportunities.
+
+
+##### ANOVA activation of fence2 analysis between fences
+
+Total weeds
+
+
+```{r ANOVA total weeds per VF fence 2, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+#the data for analysis is grouped into days of collection
+
+# "pre graze"                       =  'pre_graze'   DONT INCLUDE THIS ONE
+# "1 day post fence 2 activation"   = '1 day post fence 2 activation' 
+# "day of fence 3 activation"       ='day of fence 3 activation'
+# "3 days before end of trial"      ="3 days before end of trial"
+# "post graze"                      = 'last day of trial'
+
+weeds_VF1_4 <- weeds %>% 
+  filter(Paddock == "VF1"   |  
+           Paddock =="VF2"  |   
+           Paddock =="VF3"  |  
+           Paddock =="VF4") 
+
+#str(weeds_VF1_4)
+#unique(weeds_VF1_4$timing)
+
+#divide up the data for days ready for ANOVA
+
+activation_fence2 <- weeds_VF1_4 %>% 
+  filter(timing== "1 day post fence 2 activation")
+
+activation_fence3 <- weeds_VF1_4 %>% 
+  filter(timing== "day of fence 3 activation" )
+
+post_graze <- weeds_VF1_4 %>% 
+  filter(timing== "last day of trial" )
+
+Numb_weeds_aov_activ_fence2 <- aov(`total_weeds` ~ `Paddock` , data = activation_fence2)
+summary(Numb_weeds_aov_activ_fence2)
+TukeyHSD(Numb_weeds_aov_activ_fence2)
+
+
+
+```
+
+##### ANOVA activation of fence3 analysis between fences
+
+Total weeds
+
+```{r ANOVA total weeds per VF fence 3, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+
+
+Numb_weeds_aov_activ_fence3 <- aov(`total_weeds` ~ `Paddock` , data = activation_fence3)
+summary(Numb_weeds_aov_activ_fence3)
+TukeyHSD(Numb_weeds_aov_activ_fence3)
+
+
+
+```
+
+##### ANOVA post graze analysis between fences
+
+Total weeds
+
+```{r ANOVA total weeds per VF post graze, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+
+
+Numb_weeds_aov_post_graze <- aov(`total_weeds` ~ `Paddock` , data = post_graze)
+summary(Numb_weeds_aov_post_graze)
+TukeyHSD(Numb_weeds_aov_post_graze)
+
+
+```
+
+
+
+
+##### ANOVA Ryegrass post graze between VF fences
+
+
+Note we only have the data on Ryegrass and Sow Thistle counts on post graze (for each VF location)
+
+```{r ANOVA Ryegrass per VF post graze, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+Numb_weeds_aov_post_graze_RG <- aov(`Rye Grass` ~ `Paddock` , data = post_graze)
+summary(Numb_weeds_aov_post_graze_RG)
+TukeyHSD(Numb_weeds_aov_post_graze_RG)
+
+
+```
+##### ANOVA Ryegrass heads post graze between VF fences
+
+
+```{r ANOVA Ryegrass_heads per VF post graze, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+Numb_weeds_aov_post_graze_RG_h <- aov(`heads` ~ `Paddock` , data = post_graze)
+summary(Numb_weeds_aov_post_graze_RG_h)
+TukeyHSD(Numb_weeds_aov_post_graze_RG_h)
+
+
+```
+
+
+##### ANOVA Sow thistle post graze between VF fences
+
+
+```{r ANOVA Sow_thistle per VF post graze, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+Numb_weeds_aov_post_graze_ST <- aov(`Sow_thistle` ~ `Paddock` , data = post_graze)
+summary(Numb_weeds_aov_post_graze_RG)
+TukeyHSD(Numb_weeds_aov_post_graze_RG)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+## Start of trial and movement of fences
+
+Start of trial activation_fence1 2020-10-21 14:55:00
+
+End of trail 2020-11-09 09:00:00 (not sure the exact time)
+
+Activation of the fences can be obtained from the eshepherd website.
+
+- https://www.eshepherd.com/login 
+
+Log in details are:
+Jim.Lea@csiro.au
+cs1roP@ss
+
+There is about a 10 min lag between the time of the request and the activation of the fence.
+
+The time of the requested fence change is reported in local time for the user.
+
+For example if you log into the website in NSW the requested time is reported in EST,
+but if you log into the website in SA it is reported in ACT.
+
+
+ACT local time:
+
+- activation_fence1 2020-10-21 14:55:00
+- activation_fence2 2020-10-25 10:50:00
+- activation_fence3 2020-10-30 08:03:00
+- *deactivation_fence4* 2020-10-03 11:56:00
+
+
+
+
+**Other notes for animals and weather**
+
+Nigel is 1719 (9380672) and is in the control group he spends lots of time away from the mob.
+
+Problem child / fence jumper 1632 (9380384).
+
+Very cold windy day XXX?
+Hot day 3/11/2020
+
+
+## Background information on animal collar data from Agersens
+
+The data will be downloaded from the cloud by Agersens every Monday.
+
+The data exports are available on the Amazon S3 Bucket, Jim has login details for this.
+
+The chief data scientist/ data analytics manager is:
+
+DR. TANUSRI BHATTACHARYA
+Chief Data Scientist/ Data Analytics Manager
+email: tbhattacharya@agersens.com
+
+The data is different to previous years and is aggregated in different ways.
+
+Every 10 mins generates a new row of data.
+
+This can be viewed from the timeOfEvent column.
+
+**timeOfEvent**
+
+Note that this timeOfEvent has a date and time stamp which is in GMT.
+
+The *timeOfEvent* will need to be converted to local time.
+Which is 10.5 hrs difference.
+
+**GPS**
+
+The GPS data is a snapshot of the location of the animals in a 10 min window.
+
+Data columns that are supplied:
+
+- *gpsData.lat*	
+- *gpsData.lng*
+- *gpsData.velocity_cm_s*	
+- *gpsData.hdop_deci*	
+
+I will use the lat and long column to create a location of the animal in the 10 min window.
+
+The accuracy of this reading can be viewed within this 10 min window.
+
+
+I am not sure about the velocity and hdop columns.
+
+hdop is normally tells us about the accuracy of the GPS reading, but if the point is only logged every 10 mins would this be useful ?
+
+I am also not sure about the use of the velocity reading, how would this be calculated if only one GPS record was logged every 10mins? 
+
+
+**Stimuli - cue and audio readings**
+
+The *cumulativeAudioCount* and	*cumulativeShockCount* columns are a running total of how many stimuli the animal has received since the start of the trial, and is re calculated every 10 mins.
+
+It appears that the increments are not reset when a new fence is implement.
+Instead its just keeps cummulating.
+
+**Device details**
+
+The *deviceName* is the name of the collar, more details about the mob can be found on the shared drive.
+
+"\\FSSA2-ADL\clw-share1\Microlab\VF\LongPlain\Animal_ID\CSIROAnimalUpload-2020-10-20 Jim.xlsx" 
+
+There is another columns which has information about the device this is called *deviceUIDHex*.
+
+I am not using this column.
+
+
+**Virtual Fence**
+
+
+There is a column which is called *minDistanceToIZ*, which is the distance of the animal to the VF.
+
+I am not sure if this is the min distance the animal got to the fence in the 10 min window or its the distance calculated from the logged GPS point in the file in the 10 mins window.
+
+If it is the min distance the animal got to and not just the distance from the fence in the 'snap shot' this would be useful.
+
+Column called *fencesID* is the name of the fence we have 2 files, the VF and control.
+VF data:
+The fence names in this column don't match what appears on the website.
+
+- 1900  - fence 1 
+- 1922f - fence 2 
+       
+
+The blank data in for the *fencesID* column has two categories.
+
+
+- minDistanceToIZ = -1000000
+- minDistanceToIZ = no data.
+
+The data points with a blank fencesID id and aminDistanceToIZ = -1000000 has lying and standing values.
+
+While the data points with a blank fencesID id and minDistanceToIZ = NA has **no** lying and standing values.
+
+Tanusri has suggested:
+
+*"If the values in “fenceID” column as blank, this means there is no active virtual fence for that neckband yet. Therefore, if you are performing some analysis related to virtual fencing, you can ignore those rows with blank fenceIDs."*
+
+
+**Animal activity**
+
+There are 4 columns that relate to the 
+- *resting%*	
+- *moving%*
+- *grazing%* 
+
+- *AwakeTime%*
+
+The first 3 should add up to 100% and this is a sum value for the 10 min of time.
+
+For example in the 10 min window the animals has spent 37% of the time resting, 30% moving and 33% grazing.
+
+I need to double check this with Dana.
+
+
+The Awake Time is different and won't add to the 100%.
+
+I am not sure when this data column could be useful, any ideas Dana?
+
+
+
+
+# Data manipulation 
+
+## Step 1 bring in the raw data and set date and time formats
+
+Week 1 download data two files for each week:
+
+- csiro_weeklyexports_ending_2020-10-26
+- csiro_weeklyexports_novf_ending_2020-10-27
+ Monday and Tuesday
+
+
+Week2 
+
+- csiro_weeklyexports_ending_2020-11-02.csv
+- csiro_weeklyexports_novf_ending_2020-11-03.csv
+ Monday and Tuesday
+
+Week3 
+
+csiro_weeklyexports_novf_ending_2020-11-09.csv
+csiro_weeklyexports_ending_2020-11-09.csv
+Monday this was the end of trial
+
+Week4 (not sure if we need this data)
+
+"csiro_weeklyexports_novf_ending_2020-11-16.csv"
+"csiro_weeklyexports_ending_2020-11-16.csv"
+Monday
+
+
+Set the date and time column to GMT and then display as local time.
+
+**For the VF dataset I am only retaining data points that have an associated fence ID.**
+
+Need to double check this - this is based on advice from Agersens.
+
+
+**I need some help here??**
+
+I want to make a clm that will help identify what part of the paddock the cows are allowed to graze in.
+
+For VF 1 - 3 this is easy.
+The data has an clm with 'fence ID', so when a VF is active this clm will have the fence ID value in it.
+There is a problem with some logged points, the fence ID clm is blank.
+I assume this is happening because the VF is deactivated.
+Agersens suggested "For the VF dataset only retaining data points that have an associated fence ID".
+
+
+But this is a problem because when it comes to the VF4 paddock.
+The cows were allowed to graze in this last paddock,
+but no VF was active, hence the fence ID clm don't have any values.
+
+
+So I have created some new clms to help ID the animals and the VF paddocks 
+
+group = control or VF
+
+week_numb = "week1", "week2" or "week3"
+
+Add date column - this is has no rounding and is just the date extracted from the local time column
+
+fencesID_1  = 
+
+"fence1"        = fencesID  == "19000" & group == VF 
+
+"fence2"        = fencesID  == "1922f" & group == VF
+
+"fence3"        = fencesID  == "11eab" & group == VF
+
+"deactive_VF3"  = group == "VF" & local_time >= "2020-11-03 11:57:00"
+
+"no_VF"         = group == "control"
+
+"deactive_VF"   = everything else
+
+
+I have also filter out data within a date and time range
+
+between "2020-10-21 15:07:00" to "2020-11-09 09:00:00"
+
+
+```{r bring in the data week 1, include=FALSE}
+csiro_weeklyexports_ending_2020_10_26 <- read.csv("C:/Users/ouz001/working_from_home/VF_Long_plain/logged_cattle/csiro_weeklyexports_ending_2020-10-26.csv")
+csiro_weeklyexports_novf_ending_2020_10_27 <- read.csv("C:/Users/ouz001/working_from_home/VF_Long_plain/logged_cattle/csiro_weeklyexports_novf_ending_2020-10-27.csv")
+
+
+csiro_weeklyexports_ending_2020_10_26 <- csiro_weeklyexports_ending_2020_10_26 %>% 
+  mutate(GMT = ymd_hms(timeOfEvent, tz = "GMT"),
+         group = "VF")
+csiro_weeklyexports_ending_2020_10_26 <- csiro_weeklyexports_ending_2020_10_26 %>% 
+  mutate(local_time = with_tz(GMT, tz = "Australia/Adelaide"))
+
+
+csiro_weeklyexports_novf_ending_2020_10_27 <- csiro_weeklyexports_novf_ending_2020_10_27 %>% 
+  mutate(GMT = ymd_hms(timeOfEvent, tz = "GMT"),
+         group = "control")
+csiro_weeklyexports_novf_ending_2020_10_27 <- csiro_weeklyexports_novf_ending_2020_10_27 %>% 
+  mutate(local_time = with_tz(GMT, tz = "Australia/Adelaide"))
+
+#str(csiro_weeklyexports_ending_2020_10_26)
+#str(csiro_weeklyexports_novf_ending_2020_10_27)
+
+### remove all the NA for fence ID
+# unique(csiro_weeklyexports_ending_2020_10_26$fencesID)
+# csiro_weeklyexports_ending_2020_10_26 <- filter(csiro_weeklyexports_ending_2020_10_26, !is.na(fencesID))
+# csiro_weeklyexports_ending_2020_10_26 <- filter(csiro_weeklyexports_ending_2020_10_26, 
+#                                                 fencesID== "19000" |  fencesID== "1922f" )
+
+week1 <- bind_rows(csiro_weeklyexports_ending_2020_10_26, csiro_weeklyexports_novf_ending_2020_10_27)
+week1 <- week1 %>%  mutate(week_numb = "week1",
+                           Fence_code = fencesID)
+
+
+rm(csiro_weeklyexports_ending_2020_10_26, csiro_weeklyexports_novf_ending_2020_10_27)
+```
+
+
+```{r bring in the data week 2, include=FALSE}
+
+#- csiro_weeklyexports_ending_2020-11-02.csv
+#- csiro_weeklyexports_novf_ending_2020-11-03.csv
+#"W:/VF/LongPlain/Collar_data/csiro_weeklyexports_ending_2020-11-09.csv"
+
+csiro_week2exports_ending_2020_11_02 <- read.csv("W:/VF/LongPlain/Collar_data/csiro_weeklyexports_ending_2020-11-02.csv")
+csiro_week2exports_novf_ending_2020_11_03 <- read.csv("W:/VF/LongPlain/Collar_data/csiro_weeklyexports_novf_ending_2020-11-03.csv")
+
+
+csiro_week2exports_ending_2020_11_02 <- csiro_week2exports_ending_2020_11_02 %>% 
+  mutate(GMT = ymd_hms(timeOfEvent, tz = "GMT"),
+         group = "VF")
+csiro_week2exports_ending_2020_11_02 <- csiro_week2exports_ending_2020_11_02 %>% 
+  mutate(local_time = with_tz(GMT, tz = "Australia/Adelaide"))
+
+
+csiro_week2exports_novf_ending_2020_11_03 <- csiro_week2exports_novf_ending_2020_11_03 %>% 
+  mutate(GMT = ymd_hms(timeOfEvent, tz = "GMT"),
+         group = "control")
+csiro_week2exports_novf_ending_2020_11_03 <- csiro_week2exports_novf_ending_2020_11_03 %>% 
+  mutate(local_time = with_tz(GMT, tz = "Australia/Adelaide"))
+
+#str(csiro_week2exports_ending_2020_11_02)
+#str(csiro_week2exports_novf_ending_2020_11_03)
+
+### remove all the NA for fence ID
+# unique(csiro_week2exports_ending_2020_11_02$fencesID)
+# csiro_week2exports_ending_2020_11_02 <- filter(csiro_week2exports_ending_2020_11_02, !is.na(fencesID))
+# csiro_week2exports_ending_2020_11_02 <- filter(csiro_week2exports_ending_2020_11_02, 
+#                                                 fencesID== "11eab" |  fencesID== "1922f" )
+
+week2 <- bind_rows(csiro_week2exports_ending_2020_11_02, csiro_week2exports_novf_ending_2020_11_03)
+week2 <- week2 %>%  mutate(week_numb = "week2",
+                           Fence_code = fencesID)
+
+
+
+rm(csiro_week2exports_ending_2020_11_02, csiro_week2exports_novf_ending_2020_11_03)
+```
+
+
+```{r bring in the data week 3, include=FALSE}
+
+#csiro_weeklyexports_novf_ending_2020-11-09.csv
+#csiro_weeklyexports_ending_2020-11-09.csv
+
+
+csiro_week3exports_ending_2020_11_09 <- read.csv("W:/VF/LongPlain/Collar_data/csiro_weeklyexports_ending_2020-11-09.csv")
+csiro_week3exports_novf_ending_2020_11_09 <- read.csv("W:/VF/LongPlain/Collar_data/csiro_weeklyexports_novf_ending_2020-11-09.csv")
+
+
+csiro_week3exports_ending_2020_11_09 <- csiro_week3exports_ending_2020_11_09 %>% 
+  mutate(GMT = ymd_hms(timeOfEvent, tz = "GMT"),
+         group = "VF")
+csiro_week3exports_ending_2020_11_09 <- csiro_week3exports_ending_2020_11_09 %>% 
+  mutate(local_time = with_tz(GMT, tz = "Australia/Adelaide"))
+
+
+csiro_week3exports_novf_ending_2020_11_09 <- csiro_week3exports_novf_ending_2020_11_09 %>% 
+  mutate(GMT = ymd_hms(timeOfEvent, tz = "GMT"),
+         group = "control")
+csiro_week3exports_novf_ending_2020_11_09 <- csiro_week3exports_novf_ending_2020_11_09 %>% 
+  mutate(local_time = with_tz(GMT, tz = "Australia/Adelaide"))
+
+
+
+### remove all the NA for fence ID
+# unique(csiro_week3exports_ending_2020_11_09$fencesID)
+# csiro_week3exports_ending_2020_11_09 <- filter(csiro_week3exports_ending_2020_11_09, !is.na(fencesID))
+# csiro_week3exports_ending_2020_11_09 <- filter(csiro_week3exports_ending_2020_11_09, 
+#                                                 fencesID== "11eab"  )
+
+week3 <- bind_rows(csiro_week3exports_ending_2020_11_09, csiro_week3exports_novf_ending_2020_11_09)
+week3 <- week3 %>%  mutate(week_numb = "week3",
+                           Fence_code = fencesID)
+rm(csiro_week3exports_ending_2020_11_09, csiro_week3exports_novf_ending_2020_11_09)
+```
+
+
+```{r append week 1 2 and 3, echo=FALSE, message=FALSE, warning=FALSE}
+
+# unique(week1$fencesID)
+# unique(week2$fencesID)
+# unique(week3$fencesID)
+# 
+# unique(week1$week_numb)
+# unique(week2$week_numb)
+# unique(week3$week_numb)
+
+week1_2_3 <- rbind(week1, week2, week3)
+week1_2_3 <- week1_2_3 %>% 
+  mutate(date = as.Date(local_time, tz= "Australia/Adelaide"),
+         DOY = yday(date))
+
+
+# filter out data within a date and timme range
+
+week1_2_3 <- week1_2_3 %>%  filter(local_time >= ymd_hms("2020-10-21 15:07:00", tz= "Australia/Adelaide"), 
+                    local_time <=  ymd_hms("2020-11-09 09:00:00", tz= "Australia/Adelaide"))
+
+
+# check_import <- week1_2_3 %>% 
+#   group_by(date, group) %>% 
+#   summarise(reading = n())  
+# 
+# check_import
+
+# create a new fence 1 based on if the data has VF active 
+#this has coded the fence with a deactive VF to help capture the last paddock
+#when no fence was active.
+# but ..... there are logs on all days that have deactivated fences.
+#not sure what to do about these - just remove them???
+
+week1_2_3 <- week1_2_3 %>%  
+  mutate(
+    fencesID_1  = case_when(
+      fencesID  == "19000" & group == "VF" ~ "fence1",
+      fencesID  == "1922f" & group == "VF"~ "fence2",
+      fencesID  == "11eab" & group == "VF"~ "fence3",
+      group == "VF" & local_time >= ymd_hms("2020-11-03 11:57:00", tz= "Australia/Adelaide") ~ "deactive_VF3",
+      group == "control" ~ "no_VF",
+      TRUE        ~ "deactive_VF"))
+
+
+
+# test <- week1_2_3 %>% dplyr::select(
+#   fencesID ,
+#   group,
+#   Fence_code,
+#   date,
+#   fencesID_1,
+#   week_numb,
+#   local_time)
+ 
+
+# check1 <- test %>% group_by( week_numb  , group, fencesID_1) %>% 
+#   summarise(min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+#             max_local_time = ymd_hms(max(local_time), tz= "Australia/Adelaide"))
+# 
+# check1
+
+check2 <- week1_2_3 %>% group_by( group, fencesID_1) %>% 
+  summarise(min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+            max_local_time = ymd_hms(max(local_time), tz= "Australia/Adelaide"))
+
+check2
+
+ 
+```
+
+## Activation of fences and subset the data into fences
+
+- activation_fence1 2020-10-21 14:55:00
+- activation_fence2 2020-10-25 10:50:00
+- activation_fence3 2020-10-30 08:03:00
+- *deactivation_fence4* 2020-10-03 11:56:00
+
+
+There is a small discrepancy with the times (due to an approx. 10 min lag).
+
+
+
+## Add columns to aid plotting and analysis.
+
+
+
+Add extra one for days since fence move clm called 'day_since_vf_start'
+
+Julian days from local date/time column and then subtract start of VF.
+
+Note that for the last fence move 
+I have used vf3_end "2020-11-03 11:57:00"
+
+The dataset ends on the 09/11/2020
+
+Fence 1 ran for 5 days
+Fence 2 ran for 6 days 
+Fence 3 ran for 5 days
+Fence 3 was deactivated for 7 days (till the end of the trial)
+
+
+```{r add clms days since start, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+## clm for day of year in local time
+
+vf1_start <-  yday(ymd_hms("2020-10-21 14:55:00", tz= "Australia/Adelaide")) 
+vf2_start <-  yday(ymd_hms("2020-10-25 10:50:00", tz= "Australia/Adelaide"))
+vf3_start <-  yday(ymd_hms("2020-10-30 08:03:00", tz= "Australia/Adelaide"))
+vf3_end <-  yday(ymd_hms("2020-11-03 11:57:00", tz= "Australia/Adelaide"))
+
+
+
+week1_2_3 <- week1_2_3 %>%  
+  mutate(
+    day_since_vf_start  = case_when(
+      fencesID_1 == "fence1" ~ (DOY-vf1_start)+1,
+      fencesID_1 == "fence2" ~ (DOY-vf2_start)+1,
+      fencesID_1 == "fence3" ~ (DOY-vf3_start)+1,
+      fencesID_1 == "deactive_VF3" ~ (DOY-vf3_end)+1))
+  
+
+check3 <- week1_2_3 %>% group_by( group, fencesID_1) %>% 
+  summarise('min day since VF move' = min(day_since_vf_start),
+            'max day since VF move' = max(day_since_vf_start))
+
+check3
+
+
+
+```
+
+
+
+Grazing hours are between 0630 -0930  (email from Caroline Lee Tue 27/10/2020)
+I am sub setting the data to only select logs during this grazing time.
+
+This is now a separate DF called 'grazing_window_week1_2_3'
+
+
+```{r add clms grazing time, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+## clm for grazing time in local time - get time from local time clm
+
+# make a clm for time
+week1_2_3 <- week1_2_3 %>% 
+  mutate(time = hms::as_hms(local_time))
+
+
+#subset the data to just get the grazing time
+
+grazing_window_week1_2_3 <- week1_2_3 %>% 
+  filter(time >= hms::as_hms('06:30:00'),
+         time <= hms::as_hms('09:30:00'))
+
+
+check4 <- grazing_window_week1_2_3 %>% group_by(DOY, group, fencesID_1) %>% 
+  summarise(min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+            max_local_time = ymd_hms(max(local_time), tz= "Australia/Adelaide"))
+
+head(check4)
+
+
+```
+
+
+## Basic checks
+- Start and end of fence
+- How many animals per day / group
+- How many records per day.
+
+
+
+
+
+
+```{r min and max time, message=FALSE, warning=FALSE, include=FALSE}
+
+#str(week1_2_3)
+
+week1_2_3_summary <- week1_2_3 %>% group_by( fencesID_1 ) %>% 
+  summarise(min_local_time = min(local_time),
+            max_local_time = max(local_time))
+
+
+
+
+DT::datatable(head(week1_2_3_summary), caption = 'Start and end time for fences.')%>%
+  formatDate(
+    c('min_local_time', "max_local_time"),
+    method = "toLocaleString",
+    params = list("se", list(timeZone = "Australia/Adelaide")))
+
+
+
+```
+
+The number of animals per day
+
+
+```{r number of animals per date, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+animals_per_day <- week1_2_3 %>% group_by( date, group,fencesID_1 ) %>% 
+  summarise(count = n_distinct( deviceName  ))
+
+
+animals_per_day <- ungroup(animals_per_day)
+
+
+ggplot(animals_per_day, aes(x = date, y = count, colour = group))+
+  geom_point()+
+  facet_wrap(.~ fencesID_1)+ 
+  labs(
+    x = "Date",
+    y = "count",
+    title = paste("Number of animals per day")
+  )
+
+
+```
+
+
+**The number of records for each day.**
+
+
+- It can be written out to a csv file if needed.
+
+
+- Animals in the VF group have more records than the control
+
+- But for the VF group the number of records drop off towards the end of the trial.
+
+- This is because no VF is activated.
+
+
+
+```{r records per day, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ week1_2_3_VF <- week1_2_3 %>%  filter(group == "VF")
+# number_records_week1_2_3_VF <- table(week1_2_3_VF$deviceName, week1_2_3_VF$date)
+# 
+# 
+# 
+ week1_2_3_control <- week1_2_3 %>%  filter(group == "control")
+# number_records_week1_2_3_control <- table(week1_2_3_VF$deviceName, week1_2_3_VF$date)
+
+
+
+week1_2_3_VF_summary <-
+  week1_2_3_VF %>%
+  count(deviceName, date)
+
+week1_2_3_VF_summary$deviceName <- as.factor(week1_2_3_VF_summary$deviceName)
+
+ggplot(week1_2_3_VF_summary, aes(deviceName,n ))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  facet_wrap(.~date)+
+labs(
+    x = "animal",
+    y = "count of records",
+    title = paste("VF animals")
+  )
+
+
+
+week1_2_3_control_summary <-
+  week1_2_3_control %>%
+  count(deviceName, date)
+
+week1_2_3_control_summary$deviceName <- as.factor(week1_2_3_control_summary$deviceName)
+
+ggplot(week1_2_3_control_summary, aes(deviceName,n ))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  facet_wrap(.~date)+
+labs(
+    x = "animal",
+    y = "count of records",
+    title = paste("Control animals")
+  )
+
+```
+
+
+## Plot stimuli results
+
+The below plots are just for the animals in the VF (not the control animals).
+
+The stimuli data is supplied as a 'cummulative value'.
+I would like it to be plotted per day and fence.
+
+I could report the cummulative audio pulses and cummulative pulse pulses for the same time each day of the trial.
+
+Sub-setting the data only retaining values at 3pm for each day.
+
+But we don't always have readings for 3pm.
+I have rounded the time column to the closest 15mins
+I can pull out a window and use that e.g. 15:00 - 15:15.
+This returns 80 readings (the window seems to be working)
+
+
+Using a 3pm window to subset the data, I double check that I have readings for all 20 animals.
+Some animals have 2 readings while others have only 1.
+So I can't change this window too much (as I need a at least 1 record).
+
+
+Grouping the 3pm window data on date and collar ID.
+Summary stats on the max values for:
+
+- a = audio min value per day per animal
+- b = pulse min value per day per animal
+- ratio =  ((b/a)*100) per day per animal
+
+
+
+
+
+```{r working -ratio for VF1 mob, message=FALSE, warning=FALSE, include=FALSE}
+
+#1 create an ID for each row
+test <- week1_2_3_VF
+test$ID <- seq.int(nrow(test))
+
+# Pull out just the VF data
+test_VF <- test %>% 
+  filter(group == "VF")
+
+# create a new clm that rounds the time to every 15 mins
+test_VF_for_3pm <- test_VF %>% 
+  mutate(round_date_time = ceiling_date(local_time, "15 mins"),
+         time_round = hms::as_hms(round_date_time))
+
+
+#value at the start of each day pull out the values for this window
+test_VF_for_3pm <- test_VF_for_3pm %>% 
+  filter(time_round >= hms::as_hms('15:00:00'),
+         time_round <= hms::as_hms('15:15:00'))
+
+ungroup(test_VF_for_3pm)
+
+
+str(test_VF_for_3pm)
+# what is the smallest values in the data set for each animal and day
+test_VF_for_3pm <- test_VF_for_3pm %>% 
+  group_by(deviceName, date) %>% 
+  summarise(
+    min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+    ID = ID)
+
+test_VF_for_3pm <- test_VF_for_3pm %>% 
+  group_by(deviceName, date) %>% 
+  summarise(
+    min_ID = (min(ID)))
+
+
+#I think this is working now I need to use the ID to retain values in the first dataset.
+# use a join to do this
+ungroup(test_VF_for_3pm)
+str(test_VF_for_3pm)
+test_VF_for_3pm <- test_VF_for_3pm %>% 
+  dplyr::select(min_ID)
+
+join <- left_join(test_VF_for_3pm,test, by = c("min_ID" = "ID") )
+str(join)
+
+join <- join %>%  dplyr::rename(deviceName = deviceName.x) %>% 
+        dplyr::select(-deviceName.y )
+
+
+
+
+```
+
+
+```{r plots -ratio for VF1 mob, echo=FALSE, message=FALSE, warning=FALSE}
+
+ week1_2_3_for_3pm_per_animal <- join %>% 
+  group_by(date, deviceName) %>%
+  summarise(audio = min( cumulativeAudioCount, na.rm = TRUE),
+            pulse = min( cumulativeShockCount, na.rm = TRUE),
+            ratio = (pulse/audio)*100)
+
+
+week1_2_3_for_3pm_per_animal <- ungroup(  week1_2_3_for_3pm_per_animal)
+
+# make df narrow
+
+
+week1_2_3_for_3pm_per_animal <- pivot_longer(week1_2_3_for_3pm_per_animal,
+                                             cols = c("audio", "pulse", "ratio"),
+                                             names_to = "stimuli")
+
+
+
+
+#plots
+
+
+
+#str(week1_2_3_for_3pm_per_animal$date)
+
+vertical_lines <- c("2020-10-21", "2020-10-25", "2020-10-30", "2020-11-03")
+
+#str(vertical_lines)
+
+week1_2_3_for_3pm_per_animal %>%
+  filter(stimuli == "ratio" ) %>% 
+  ggplot(aes(x = date , y = value)) +
+  geom_col()+
+  theme_classic() +
+  facet_wrap(.~deviceName)+
+  theme(axis.text.x = element_text(angle = 90))+
+  geom_vline(xintercept = as.Date(vertical_lines), col = "blue")+
+  labs(
+    x = "Date",
+    y = "ratio (pulse/audio)*100 ",
+    title = paste("Animals fitted with VF collars")
+  )
+
+week1_2_3_for_3pm_per_animal %>%
+  filter(stimuli != "ratio" ) %>% 
+  ggplot(aes(x = date , y = value)) +
+  geom_col(aes(fill = stimuli), width = 0.7)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+   geom_vline(xintercept = as.Date(vertical_lines), col = "blue")+
+  labs(
+    x = "Date",
+    y = "cummulative of stimuli",
+    title = paste("Animals fitted with VF collars")
+  )
+
+```
+
+
+
+The below plots adding another layer of grouping.
+
+Plots are with all the animal information.
+Should this be a sum or average?
+
+I am going to use average!
+
+I have grouped the data into date and calculated:
+
+
+- calculated the mean of audio pulses for all the animals
+- calculated the mean of pulse for all the animals
+- calculated the mean of ratio for all the animals
+
+
+
+```{r results -stimuli for VF1 mob, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+#week1_2_3_for_3pm_per_animal
+
+fence_1to3_summary_per_day <- week1_2_3_for_3pm_per_animal %>% 
+  group_by(date, stimuli)%>%
+  summarise(stimuli_av_day = mean(value, na.rm = TRUE))
+
+
+
+fence_1to3_summary_per_day %>%
+  filter(stimuli == "ratio" ) %>% 
+  ggplot(aes(x = date , y = stimuli_av_day)) +
+  geom_col()+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  geom_vline(xintercept = as.Date(vertical_lines), col = "blue")+
+  labs(
+    x = "Date",
+    y = "average ratio ",
+    title = paste("")
+  )
+
+
+
+
+fence_1to3_summary_per_day %>%
+  filter(stimuli != "ratio" ) %>% 
+  ggplot(aes(x = date , y = stimuli_av_day)) +
+  geom_col(aes(fill = stimuli), width = 0.7)+
+  theme_classic() +
+  geom_vline(xintercept = as.Date(vertical_lines), col = "blue")+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Date",
+    y = "Average of stimuli",
+    title = paste("")
+  )
+
+
+```
+
+
+
+
+
+
+## Plot activity results
+ 
+
+These values are not cummulative.
+
+Each data line (and associated time is independent from the time before).
+
+However each line (row) is a summary of the animals activity in a 10 min window.
+
+
+The below plots are the average per animal per day for the nominated activity.
+
+The data is grouped into date and collar ID (and control or VF animals)
+
+
+
+
+
+```{r lying_standing for VF1 mob, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+  
+check3 <- week1_2_3 %>% 
+  group_by(date, group) %>% 
+  summarise(reading = n())  
+
+week1_2_3_animal_per_day_activity <- week1_2_3 %>% group_by(date, group, deviceName) %>% 
+  summarise(av_resting = mean( resting., na.rm = TRUE),
+            av_moving = mean( moving., na.rm = TRUE),
+            av_grazing = mean( grazing., na.rm = TRUE))
+
+
+
+week1_2_3_animal_per_day_activity <- pivot_longer(week1_2_3_animal_per_day_activity,
+                                                  cols = c("av_resting", "av_moving", "av_grazing"),
+                                                  names_to = "activity")
+
+
+
+
+
+week1_2_3_animal_per_day_activity %>%
+  filter(group == "VF") %>% 
+  ggplot(aes(x = date , y = value)) +
+  geom_col(aes(fill = activity), width = 0.7)+
+  theme_classic() +
+  facet_wrap(.~ deviceName)+
+  geom_vline(xintercept = as.Date(vertical_lines), col = "black")+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Date",
+    y = "% time attributed to activity",
+    title = paste("animals with VF collars")
+  )
+
+week1_2_3_animal_per_day_activity %>%
+  filter(group == "control") %>% 
+  ggplot(aes(x = date , y = value)) +
+  geom_col(aes(fill = activity), width = 0.7)+
+  theme_classic() +
+  facet_wrap(.~ deviceName)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Date",
+    y = "% time attributed to activity",
+    title = paste("animals in the control")
+  )
+
+```
+
+
+**Per day plots**
+
+mean value of activity per day
+
+Do I need to convert this to mins first - check that its make sure its a 10min window
+
+
+```{r lying_standing for VF1 per day, echo=FALSE, message=FALSE, warning=FALSE}
+
+#print(week1_2_3_animal_per_day_activity)
+
+week1_2_3_animal_per_day_activity_1 <- week1_2_3_animal_per_day_activity %>% 
+  group_by(date, activity, group)%>%
+  summarise(activity_av_day = mean(value, na.rm = TRUE))
+
+
+week1_2_3_animal_per_day_activity_1 %>%
+    ggplot(aes(x = date , y = activity_av_day)) +
+  geom_col(aes(fill = activity), width = 0.7)+
+  theme_classic() +
+  facet_wrap(.~ group)+
+  geom_vline(xintercept = as.Date(vertical_lines), col = "black")+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Date",
+    y = "% time attributed to activity",
+    title = paste("all animals")
+  )
+
+
+```
+
+I haven't done anything with awake time
+
+Also I have divided data up into grazing time 06:30-09:30 and I haven't done anything with this.
+
+I think this data needs to be explore more before running stats on it. 
+
+
+
+## Plot GPS logs
+
+
+```{r GPS data import, message=FALSE, warning=FALSE, include=FALSE}
+
+#need to make df into spatial object for graphing and try clipping to paddock boundary
+long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
+long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
+
+#str(week1_2_3)
+
+
+week1_2_3_sf <-
+      st_as_sf(week1_2_3,
+               coords = c("gpsData.lng", "gpsData.lat"),
+               crs = 4326,
+               agr = "constant")
+
+week1_2_3_sf_trans <-
+      st_transform(week1_2_3_sf, crs = 28354)
+week1_2_3_sf_clip <-
+      st_intersection(week1_2_3_sf_trans, long_plains)
+    
+
+
+
+
+###  paddock bounadry
+
+#assign a coord ref epsg
+st_crs(long_plains) <- 28354
+
+#make this the epsg that will be used for all data
+the_crs <- st_crs(long_plains, asText = TRUE)
+
+### VF lines
+st_crs(long_plains_Vf) <- 28354
+
+
+```
+
+
+```{r GPS plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot() +
+  geom_sf(data = week1_2_3_sf_clip, color = "black", fill = NA) 
+
+ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = week1_2_3_sf_clip,alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "")
+
+fence1_GPS <- week1_2_3_sf_clip %>% 
+  filter(fencesID_1 == "fence1")  
+fence2_GPS <- week1_2_3_sf_clip %>% 
+  filter(fencesID_1 == "fence2")
+fence3_GPS <- week1_2_3_sf_clip %>% 
+  filter(fencesID_1 == "fence3") 
+fence3_deactive_GPS <- week1_2_3_sf_clip %>% 
+  filter(fencesID_1 == "deactive_VF3") 
+
+ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = fence1_GPS,alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF1 Days since start of VF")+
+  facet_wrap(.~ day_since_vf_start)
+
+ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = fence2_GPS,alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF2 Days since start of VF")+
+  facet_wrap(.~ day_since_vf_start)
+
+ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = fence3_GPS,alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF3 Days since start of VF")+
+  facet_wrap(.~ day_since_vf_start)
+
+ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = fence3_deactive_GPS,alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "Deactivation of VF3 Days since start of deactivation VF")+
+  facet_wrap(.~ day_since_vf_start)
+
+```
+
+Rick was after an additional plot.
+
+My notes are a big vague.
+
+Animal movement plot with background for VF2 all animals since the start.
+
+I haven't displayed the polygons in R - I have used armap for this.
+
+```{r GPS plot extra, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+# use data that is not projected and has long and lat clm - need to change the names a bit also filter the data
+
+test_week1_2_3 <- rename(week1_2_3, lat = gpsData.lat,
+                         lon = gpsData.lng   )
+
+All_animals_pre29th <- test_week1_2_3 %>% 
+  filter(date < as.Date("2020-10-29") )
+
+### Apparelty I have a google API key I have no idea when I did this but I found it here -
+#https://console.cloud.google.com/apis/credentials/key
+
+# And the below code will ensure R store it???
+# i have moved it to a text file in this folder
+
+
+# map <- get_googlemap(center = c(lon = 138.313047, lat = -34.317137),
+#                      maptype = c("satellite"),
+#                      zoom = 15) #smaller values zoom out bigger values zoom in
+# 
+# 
+# 
+# ggmap(map) + 
+#   geom_point(data = All_animals_pre29th, color = "blue", size = 0.5, alpha = 0.01) 
+  
+
+#Can I add the shapefile that have boundary - nope - its beyond me at this stage??
+
+
+# # long_plains_WGS <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound_WGS.shp")
+# # long_plains_Vf_WGS <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound_WGS.shp")
+# 
+# #write.csv(All_animals_pre29th, "All_animals_pre29th.csv") 
+
+
+```
+
+
+
+```{r animals pre 29th, echo=FALSE, message=FALSE, warning=FALSE}
+# All defaults
+include_graphics("W:/VF/LongPlain/Collar_data/Boundary_map with pre 29th animals.png")
+
+
+```
+
+## Areal image taken on the 3/11/2020
+
+```{r areal image, echo=FALSE, message=FALSE, warning=FALSE}
+# All defaults
+include_graphics("W:/VF/LongPlain/Aerial imagery/Aerial_image.png")
+
+
+```
+
+
+
+
+
+## Animal weights
+
+
+At the end of the trial.
+
+Weight gain expressed as:
+
+- % gain
+
+- total gain (check the units ? grams)
+
+- Daily weight gain
+
+ 
+
+```{r animal_wts, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+animal_wt <- read_excel("W:/VF/LongPlain/Animal_ID/Long Plains animal weight pre post Nov 2020 collar correction done.xlsx")
+
+#str(animal_wt)
+animal_wt <- dplyr::select(animal_wt,
+                           `Mob Name`,
+                           `Neckband Serial`,
+                           `Animal Name`,
+                           `Visual Tag ID`,
+                           `NLIS ID`,
+                           `Sex`,
+                           `Breed`,
+                           `% gain`,
+                           'Weight gain',
+                           Daily_weight_gain = `Daily weight gain  (18 days)`)
+
+
+animal_wt <-   filter(animal_wt, !is.na (`Animal Name`))
+#str(animal_wt)
+
+```
+
+
+
+
+```{r animal_wts box plots, echo=FALSE, message=FALSE, warning=FALSE}
+#str(animal_wt)
+
+
+
+### weight gain as %
+
+ggplot(animal_wt, aes(x= `Mob Name`, y= `% gain`)) + 
+  geom_boxplot(alpha=0.1)+
+  geom_point(colour = "blue", alpha = 0.1)+
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+               width = .75, linetype = "dashed")+
+  theme_bw()+
+  #ylim(4,7)+
+  theme(axis.text=element_text(size=8),
+        axis.title=element_text(size=10))+
+  labs(x = "Mob",
+       y= "% weight gain",
+       title = "",
+       caption = "")
+
+### weight gain totals for mob
+
+animal_wt %>%
+  ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
+  geom_col()+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "Mob",
+       y= "weight gain",
+       title = "",
+       caption = "total weight gain after 18 days")
+
+
+animal_wt %>%
+  ggplot(aes(x= `Mob Name`, y= Daily_weight_gain)) +
+  geom_col()+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "Mob",
+       y= "daily weight gain",
+       title = "",
+       caption = "Daily weight gain")
+
+
+animal_wt %>%
+  ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
+  geom_col()+
+  facet_wrap(.~ Breed)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "Mob",
+       y= "weight gain",
+       title = "",
+       caption = "")
+
+animal_wt %>%
+  ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
+  geom_col()+
+  facet_wrap(.~ Sex)+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "Mob",
+       y= "weight gain",
+       title = "",
+       caption = "")
+
+
+
+
+
+```
+
+
+
+## Animals weight gains stats
+
+No significant weight gain differences between Mob
+
+
+```{r animal wt gains  stats, echo=TRUE, message=FALSE, warning=FALSE}
+# animal_wt 
+
+
+#str(animal_wt)
+animal_wts_aov <- aov(`Weight gain` ~ `Mob Name` , data = animal_wt)
+
+summary(animal_wts_aov)
+
+
+# total weight gain for mob
+weight_gain <- animal_wt %>% 
+  group_by(`Mob Name`) %>% 
+  summarise(`total weight gain` = sum(`Weight gain`))
+weight_gain
+
+```
+
+
+### Additional work
+
+- Dana:
+
+Jackie is it worth trying to do that new map idea the reviewer suggested last time with the behaviours matched to paddock location? 
+
+(I don’t think that was in the attached document). 
+
+- Calibartion curves
+
+- Explore more with animals activity data
+
+- Use grazing 
+
+
