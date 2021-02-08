@@ -831,7 +831,13 @@ table(weed_pre_graze_no_buffer$Location, weed_pre_graze_no_buffer$total_weeds)
 weed_pre_graze_no_buffer_aov <- aov(total_weeds ~ Location , data = weed_pre_graze_no_buffer)
 
 summary(weed_pre_graze_no_buffer_aov)
+weed_pre_graze_no_buffer_mean <- 
+  weed_pre_graze_no_buffer %>% 
+  group_by(Location) %>% 
+  summarise(
+  Mean_total_weeds = mean(total_weeds, na.rm =TRUE))
 
+weed_pre_graze_no_buffer_mean
 
 ```
 
@@ -845,6 +851,14 @@ table(weed_pre_graze_no_buffer$Location, weed_pre_graze_no_buffer$`Rye Grass`)
 Rye_grass_pre_graze_no_buffer_aov <- aov(`Rye Grass` ~ Location , data = weed_pre_graze_no_buffer)
 
 summary(Rye_grass_pre_graze_no_buffer_aov)
+
+Rye_grass_pre_graze_mean <- 
+  weed_pre_graze_no_buffer %>% 
+  group_by(Location) %>% 
+  summarise(
+  Mean_RyeGrass = mean(`Rye Grass`, na.rm =TRUE))
+
+Rye_grass_pre_graze_mean
 
 
 ```
@@ -861,7 +875,13 @@ Sow_thistle_pre_graze_no_buffer_aov <- aov(`Sow_thistle` ~ Location , data = wee
 
 summary(Sow_thistle_pre_graze_no_buffer_aov)
 
+Sow_thistle_pre_graze_no_buffer_mean <- 
+  weed_pre_graze_no_buffer %>% 
+  group_by(Location) %>% 
+  summarise(
+  Mean_Sow_thistle = mean(Sow_thistle, na.rm =TRUE))
 
+Sow_thistle_pre_graze_no_buffer_mean
 ```
 
 
@@ -947,6 +967,15 @@ weed_post_graze_aov <- aov(total_weeds ~ Location , data = weed_post_graze)
 summary(weed_post_graze_aov)
 TukeyHSD(weed_post_graze_aov)
 
+
+weed_post_graze_mean <- 
+  weed_post_graze %>% 
+  group_by(Location) %>% 
+  summarise(
+  Mean_total_weeds = mean(total_weeds, na.rm =TRUE))
+
+weed_post_graze_mean
+
 ```
 
 
@@ -977,6 +1006,8 @@ weed_post_graze_no_buffer_aov <- aov(total_weeds ~ Location , data = weed_post_g
 summary(weed_post_graze_no_buffer_aov)
 
 
+
+
 ```
 
 
@@ -990,6 +1021,14 @@ table(weed_post_graze_no_buffer$Location, weed_post_graze_no_buffer$`Rye Grass`)
 weed_post_graze_no_buffer_aov <- aov(`Rye Grass` ~ Location , data = weed_post_graze_no_buffer)
 
 summary(weed_post_graze_no_buffer_aov)
+
+Mean_Rye_Grass_mean <- 
+  weed_post_graze %>% 
+  group_by(Location) %>% 
+  summarise(
+  Mean_Rye_Grass = mean(`Rye Grass`, na.rm =TRUE))
+
+Mean_Rye_Grass_mean
 
 
 ```
@@ -1008,6 +1047,14 @@ table(weed_post_graze_no_buffer$Location, weed_post_graze_no_buffer$`heads`)
 weed_post_graze_no_buffer_aov <- aov(`heads` ~ Location , data = weed_post_graze_no_buffer)
 
 summary(weed_post_graze_no_buffer_aov)
+
+mean_weed_post_graze_no_buffer <- 
+  weed_post_graze %>% 
+  group_by(Location) %>% 
+  summarise(
+  Mean_heads = mean(heads, na.rm =TRUE))
+
+mean_weed_post_graze_no_buffer
 
 
 ```
@@ -1323,6 +1370,14 @@ TukeyHSD(Numb_weeds_aov_activ_fence2)
 
 
 
+mean_Numb_weeds_aov_activ_fence2 <- 
+  activation_fence2 %>% 
+  group_by(`Paddock`) %>% 
+  summarise(
+  Mean_total_weeds = mean(`total_weeds`, na.rm =TRUE))
+
+mean_Numb_weeds_aov_activ_fence2
+
 ```
 
 ##### ANOVA activation of fence3 analysis between fences
@@ -1337,6 +1392,15 @@ Total weeds
 Numb_weeds_aov_activ_fence3 <- aov(`total_weeds` ~ `Paddock` , data = activation_fence3)
 summary(Numb_weeds_aov_activ_fence3)
 TukeyHSD(Numb_weeds_aov_activ_fence3)
+
+
+mean_Numb_weeds_aov_activ_fence3 <- 
+  activation_fence3 %>% 
+  group_by(`Paddock`) %>% 
+  summarise(
+  Mean_total_weeds = mean(`total_weeds`, na.rm =TRUE))
+
+mean_Numb_weeds_aov_activ_fence3
 
 
 
@@ -1356,6 +1420,14 @@ summary(Numb_weeds_aov_post_graze)
 TukeyHSD(Numb_weeds_aov_post_graze)
 
 
+mean_Numb_weeds_post_graze <- 
+  post_graze %>% 
+  group_by(`Paddock`) %>% 
+  summarise(
+  Mean_total_weeds = mean(`total_weeds`, na.rm =TRUE))
+
+mean_Numb_weeds_post_graze
+
 ```
 
 
@@ -1374,6 +1446,14 @@ summary(Numb_weeds_aov_post_graze_RG)
 TukeyHSD(Numb_weeds_aov_post_graze_RG)
 
 
+mean_Numb_weeds_post_graze_RG <- 
+  post_graze %>% 
+  group_by(`Paddock`) %>% 
+  summarise(
+  Mean_Rye_Grass = mean(`Rye Grass`, na.rm =TRUE))
+
+mean_Numb_weeds_post_graze
+
 ```
 ##### ANOVA Ryegrass heads post graze between VF fences
 
@@ -1385,7 +1465,13 @@ Numb_weeds_aov_post_graze_RG_h <- aov(`heads` ~ `Paddock` , data = post_graze)
 summary(Numb_weeds_aov_post_graze_RG_h)
 TukeyHSD(Numb_weeds_aov_post_graze_RG_h)
 
+mean_Numb_weeds_post_graze_RG_h <- 
+  post_graze %>% 
+  group_by(`Paddock`) %>% 
+  summarise(
+  Mean_heads = mean(heads, na.rm =TRUE))
 
+mean_Numb_weeds_post_graze_RG_h
 ```
 
 
@@ -1399,6 +1485,13 @@ Numb_weeds_aov_post_graze_ST <- aov(`Sow_thistle` ~ `Paddock` , data = post_graz
 summary(Numb_weeds_aov_post_graze_RG)
 TukeyHSD(Numb_weeds_aov_post_graze_RG)
 
+mean_Numb_weeds_post_graze_ST <- 
+  post_graze %>% 
+  group_by(`Paddock`) %>% 
+  summarise(
+  Mean_Sow_thistle = mean(`Sow_thistle`, na.rm =TRUE))
+
+mean_Numb_weeds_post_graze_ST
 
 ```
 
@@ -2212,6 +2305,15 @@ week1_2_3_for_3pm_per_animal %>%
     title = paste("Animals fitted with VF collars")
   )
 
+
+
+week1_2_3_for_3pm_per_animal_table <- week1_2_3_for_3pm_per_animal %>% 
+  filter(stimuli != "ratio" ) %>%
+  group_by(date, stimuli)%>% 
+  summarise(
+    mean_stimuli = mean(value   , na.rm =TRUE))
+week1_2_3_for_3pm_per_animal_table
+
 ```
 
 
@@ -2272,6 +2374,14 @@ fence_1to3_summary_per_day %>%
     title = paste("")
   )
 
+
+
+fence_1to3_summary_per_day_table <- fence_1to3_summary_per_day %>% 
+  filter(stimuli == "ratio" ) %>%
+  group_by(date, stimuli)%>% 
+  summarise(
+    mean_stimuli = mean(stimuli_av_day   , na.rm =TRUE))
+fence_1to3_summary_per_day_table
 
 ```
 
@@ -2574,13 +2684,13 @@ At the end of the trial.
 
 Weight gain expressed as:
 
-- % gain
+- % gain clm M
 
-- total gain (check the units ? grams)
+- total gain (check the units ? grams) clm K
 
-- Daily weight gain
+- Daily weight gain clm L
 
- 
+ W:/VF/LongPlain/Animal_ID/Long Plains animal weight pre post Nov 2020 collar correction done.xlsx
 
 ```{r animal_wts, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -2630,6 +2740,13 @@ ggplot(animal_wt, aes(x= `Mob Name`, y= `% gain`)) +
        title = "",
        caption = "")
 
+mean_animal_wt_perc <- animal_wt %>% 
+  group_by(`Mob Name`)%>% 
+  summarise(
+    mean_perc_gain = mean(`% gain`     , na.rm =TRUE))
+mean_animal_wt_perc
+
+
 ### weight gain totals for mob
 
 animal_wt %>%
@@ -2643,6 +2760,14 @@ animal_wt %>%
        caption = "total weight gain after 18 days")
 
 
+mean_animal_wt_gain <- animal_wt %>% 
+  group_by(`Mob Name`)%>% 
+  summarise(
+    mean_wt_gain = mean(`Weight gain`     , na.rm =TRUE))
+mean_animal_wt_gain
+
+
+
 animal_wt %>%
   ggplot(aes(x= `Mob Name`, y= Daily_weight_gain)) +
   geom_col()+
@@ -2652,6 +2777,12 @@ animal_wt %>%
        y= "daily weight gain",
        title = "",
        caption = "Daily weight gain")
+
+mean_Daily_weight_gain <- animal_wt %>% 
+  group_by(`Mob Name`)%>% 
+  summarise(
+    mean_daily_wt_gain = mean(Daily_weight_gain     , na.rm =TRUE))
+mean_Daily_weight_gain
 
 
 animal_wt %>%
@@ -2665,6 +2796,16 @@ animal_wt %>%
        title = "",
        caption = "")
 
+
+mean_Daily_weight_gain_breed <- animal_wt %>% 
+  group_by(`Mob Name`,Breed )%>% 
+  summarise(
+    mean_wt_gain = mean(`Weight gain` , na.rm =TRUE))
+mean_Daily_weight_gain_breed
+
+
+
+
 animal_wt %>%
   ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
   geom_col()+
@@ -2675,6 +2816,12 @@ animal_wt %>%
        y= "weight gain",
        title = "",
        caption = "")
+
+mean_Daily_weight_gain_sex <- animal_wt %>% 
+  group_by(`Mob Name`,Sex )%>% 
+  summarise(
+    mean_wt_gain = mean(`Weight gain` , na.rm =TRUE))
+mean_Daily_weight_gain_sex
 
 
 
