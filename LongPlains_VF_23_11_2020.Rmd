@@ -2855,18 +2855,146 @@ weight_gain
 ```
 
 
-### Additional work
-
-- Dana:
-
-Jackie is it worth trying to do that new map idea the reviewer suggested last time with the behaviours matched to paddock location? 
-
-(I don’t think that was in the attached document). 
-
-- Calibartion curves
-
-- Explore more with animals activity data
-
-- Use grazing 
 
 
+
+
+### Write up details 09-08-2021
+
+#### 1. audio/pulse
+
+For the audio/pulse, we think just an average proportion in the text included SE would be sufficient rather than any graphs. Could this be the proportion of audio cues relative to total signals? We are anticipating it would be around 0.8. (No stats analyses, just the values)
+
+The data we are supplied with from agenrsn is cumulativeShockCount and  cumulativeAudioCount
+I have pulled out the max value for shocks and audio for each animal.
+then calulated new variable (per anaimal) prop of audio / total cues:
+
+prop audio total cues =
+max_cumulativeAudioCount/(max_cumulativeShockCount + max_cumulativeAudioCount) *100
+
+The below table is the mean of the proportion and standard error.
+
+mean proportion of audio cues as a total of all cues  = 86% SE 0.72
+
+```{r write up audio pulse, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+#Only plots data when fence is active before 03  Sep
+
+# week1_2_3 %>%
+#   filter(date <= 2020-11-02 ) %>% 
+#   ggplot(aes(x = date , y = cumulativeAudioCount)) +
+#   #geom_col(aes(fill = stimuli), width = 0.7)+
+#   geom_col()+
+#   theme_classic() +
+#   theme(axis.text.x = element_text(angle = 90))+
+#    geom_vline(xintercept = as.Date(vertical_lines), col = "blue")+
+#   labs(
+#     x = "Date",
+#     y = "cumulativeAudioCount",
+#     title = paste("Animals fitted with VF collars")
+#   )
+
+prop_audio_of_cues_per_animal <- week1_2_3 %>% group_by(deviceName) %>% 
+  summarise(max_cumulativeShockCount = max(cumulativeShockCount,  na.rm =TRUE),
+            max_cumulativeAudioCount = max(cumulativeAudioCount,  na.rm =TRUE),
+            prop_audio_totalcues = max_cumulativeAudioCount/(max_cumulativeShockCount+max_cumulativeAudioCount)*100
+                    )
+
+prop_audio_of_cues_summary <- prop_audio_of_cues_per_animal %>% group_by() %>% 
+  summarise(prop_audio_of_cues_mean = mean(prop_audio_totalcues,  na.rm =TRUE),
+            prop_audio_of_cues_SD =sd(prop_audio_totalcues,  na.rm =TRUE),
+            prop_audio_of_cues_se=prop_audio_of_cues_SD/sqrt(n())
+                       )
+prop_audio_of_cues_summary
+
+````
+
+
+
+#### 2. body weight
+
+We think body weight can just be reported in the text (no stats analyses, just the values). Mean (+SE) gain per group perhaps? Because we do only have the 1 vs 1 for our treatment/control, we don’t want to conclude too much. 
+
+total weight gain after 18 days measure in kg??? not on the data entry sheet
+
+mean weight gain = 24.03 SE 1.89
+
+```{r write up body , echo=TRUE, message=FALSE, warning=FALSE}
+
+
+body_wt_summary <- animal_wt %>% group_by("Mob Name") %>%
+  summarise(
+    Weight_gain_mean = mean(`Weight gain` ,  na.rm = TRUE),
+    Weight_gain_SD = sd(`Weight gain`,  na.rm = TRUE),
+    Weight_gain_SE = Weight_gain_SD / sqrt(
+      n()),
+      `% gain_mean` = mean(`% gain`,  na.rm = TRUE),
+      percent_gain_SD = sd(`% gain`,  na.rm = TRUE),
+      percent_gain_SE = percent_gain_SD / sqrt(n())
+    )
+body_wt_summary
+
+
+
+```
+
+
+#### 3. GPS plots
+
+For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
+
+Plot is below
+
+```{r write up GPS plots, echo=TRUE, message=FALSE, warning=FALSE}
+
+# pull out day 1 for each VF for the vf mob
+
+fence1_day1 <-filter(fence1_GPS, day_since_vf_start == 1)
+fence2_day1 <-filter(fence2_GPS, day_since_vf_start == 1)
+fence3_day1 <-filter(fence3_GPS, day_since_vf_start == 1)
+fence3_deactivated_day1 <-filter(fence3_deactive_GPS, day_since_vf_start == 1)
+fence1_3_deactice3_day1 <- rbind(fence1_day1, fence2_day1,fence3_day1, fence3_deactivated_day1 )
+
+
+
+# get the control mob only
+
+
+week1_2_3_sf_clip_control <- week1_2_3_sf_clip %>% 
+  filter(VF_name == "Control")
+
+#What are the dates for day 1 with the VF mob use these dates to filter the control mob
+#unique(fence1_3_deactice3_day1$date)
+
+
+#list_of_date <- list(unique(fence1_3_deactice3_day1$date)) #I dont know why this wont work??
+#test <- week1_2_3_sf_clip_control %>% filter(date  %in% list_of_date)
+
+week1_2_3_sf_clip_control_day1 <- week1_2_3_sf_clip_control %>% filter(date  == "2020-10-21" |
+                                             date  == "2020-10-25" |
+                                             date  == "2020-10-30" |
+                                             date  == "2020-11-03")
+
+ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = fence1_3_deactice3_day1 ,alpha = 0.01) +
+  geom_sf(data = week1_2_3_sf_clip_control_day1 ,colour = "skyblue4", alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "Day1 of VF")+
+  facet_wrap(.~ date)
+```
+
+
+Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area?
+
+I am not really sure how to do this without an intercative maps - so i will extract a subset and plot it in a GIS program.
+
+#My time colm got messed up try doing again with a smaller data set
+
+date25 <- fence1_3_deactice3_day1 %>% 
+  filter(date == "2020-10-25") %>% 
+  dplyr::select(local_time)
