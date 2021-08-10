@@ -48,7 +48,7 @@ library(maps)
 library(mapdata)
 
 library(raster)
-
+library(hms)
 
 
 ```
@@ -1941,7 +1941,7 @@ check2
 
 - activation_fence1 2020-10-21 14:55:00
 - activation_fence2 2020-10-25 10:50:00
-- activation_fence3 2020-10-30 08:03:00
+- activation_fence3 2020-11-30 08:03:00
 - *deactivation_fence4* 2020-10-03 11:56:00
 
 
@@ -2863,9 +2863,9 @@ weight_gain
 
 #### 1. audio/pulse
 
-For the audio/pulse, we think just an average proportion in the text included SE would be sufficient rather than any graphs. Could this be the proportion of audio cues relative to total signals? We are anticipating it would be around 0.8. (No stats analyses, just the values)
+Dana / Caroline: For the audio/pulse, we think just an average proportion in the text included SE would be sufficient rather than any graphs. Could this be the proportion of audio cues relative to total signals? We are anticipating it would be around 0.8. (No stats analyses, just the values)
 
-The data we are supplied with from agenrsn is cumulativeShockCount and  cumulativeAudioCount
+Jackie: The data we are supplied with from agenrsn is cumulativeShockCount and  cumulativeAudioCount
 I have pulled out the max value for shocks and audio for each animal.
 then calulated new variable (per anaimal) prop of audio / total cues:
 
@@ -2914,9 +2914,9 @@ prop_audio_of_cues_summary
 
 #### 2. body weight
 
-We think body weight can just be reported in the text (no stats analyses, just the values). Mean (+SE) gain per group perhaps? Because we do only have the 1 vs 1 for our treatment/control, we don’t want to conclude too much. 
+Dana / Caroline: We think body weight can just be reported in the text (no stats analyses, just the values). Mean (+SE) gain per group perhaps? Because we do only have the 1 vs 1 for our treatment/control, we don’t want to conclude too much. 
 
-total weight gain after 18 days measure in kg??? not on the data entry sheet
+Jackie: total weight gain after 18 days measure in kg??? not on the data entry sheet
 
 mean weight gain = 24.03 SE 1.89
 
@@ -2942,13 +2942,13 @@ body_wt_summary
 
 #### 3. GPS plots
 
-For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
+Dana / Caroline: For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
 
-Plot is below
+Jackie: Plot is below
 
 ```{r write up GPS plots, echo=TRUE, message=FALSE, warning=FALSE}
 
-# pull out day 1 for each VF for the vf mob
+# pull out day 1 for each VF for the vf mob note that some clipping has been done.
 
 fence1_day1 <-filter(fence1_GPS, day_since_vf_start == 1)
 fence2_day1 <-filter(fence2_GPS, day_since_vf_start == 1)
@@ -2991,10 +2991,225 @@ ggplot() +
 
 Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area?
 
-I am not really sure how to do this without an intercative maps - so i will extract a subset and plot it in a GIS program.
 
-#My time colm got messed up try doing again with a smaller data set
+Activation of VF 2 occured at 2020-10-25 10:50 (dont forget that sometime there is a lag)
+Agensen have assigned a code 1922f to this fence, not that there are some data entries 
+in the correct time but if they dont have this fence code I have not included them.
 
-date25 <- fence1_3_deactice3_day1 %>% 
-  filter(date == "2020-10-25") %>% 
-  dplyr::select(local_time)
+
+
+```{r write up GPS plots first animal  25th, message=FALSE, warning=FALSE, include=FALSE}
+
+# a. Filter VF mob GPS data for the 25th only (but use the clipped dataset week1_2_3_sf_trans)
+# b. clip 25VFmob to new VF boundary (long_plains_Vf2) 25VFmob_VF2 
+# c. Filter 25VFmob_VF2 to the agensen fence code 1922f 25VFmob_VF2_1922f
+# d. report the min local time 25VFmob_VF2_1922f o.
+
+##########################################################################################################
+#Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area?
+
+#Activation of VF 2 occured at 2020-10-25 10:50 (dont forget that sometime there is a lag)
+#a. Filter VF mob GPS data for the 25th only (but use the clipped dataset week1_2_3)
+#b. clip 25VFmob to new VF boundary 25VFmob_VF2
+#c. Arrange 25VFmob_VF2 on time.
+######################################################################################################################
+long_plains_Vf2 <- long_plains_Vf %>% 
+  filter(VF_Agersen == "VF2") 
+long_plains_Vf1 <- long_plains_Vf %>% 
+  filter(VF_Agersen == "VF1")
+long_plains_Vf3 <- long_plains_Vf %>% 
+  filter(VF_Agersen == "VF3") 
+long_plains_Vf4 <- long_plains_Vf %>% 
+  filter(VF_Agersen == "VF4") 
+
+week1_2_3_select_date <- week1_2_3_sf_trans %>% filter(date  == "2020-10-21" |
+                                                date  == "2020-10-25" |
+                                                date  == "2020-10-30" |
+                                                date  == "2020-11-03")
+######################################################################################################################
+## select date 
+VFmob25 <- week1_2_3_select_date %>% 
+  filter(date == "2020-10-25")
+#check that its sensible
+VFmob25 %>% group_by() %>% 
+  summarise(min_local_time =    min(local_time,na.rm = TRUE))#this is just a chcek
+
+
+#clip my selected date VF mob data to the new paddock area
+VFmob25_clip_VF2 <-  st_intersection(VFmob25, long_plains_Vf2)
+
+#This VF mob on the 25th that are only in the VF2 location we have some GPS logs that exist on the 25th but when fence 1 was active
+# Using Fence_code clm 
+
+# agersens assigned a code in Fence_code clm for data enteries that relate to this fence
+VFmob25_clip_VF2_1922f <- VFmob25_clip_VF2 %>% 
+  filter(Fence_code=="1922f")
+
+
+##########################################################################################################################
+### when did fence 1922f become active?
+## check what was the min time when Fence_code 1922f existed
+week1_2_3_sf_trans_1922f <-
+  week1_2_3_sf_trans %>% filter(Fence_code == "1922f")
+
+min_time_fence_1922f <- week1_2_3_sf_trans_1922f %>% group_by() %>%
+  summarise(min_local_time =    min(local_time, na.rm = TRUE)
+  )
+### when did the first data enetry occur after fence 1922f become active on the 25th and in the VF 2 area?
+min_time_fence_1922f_move <- VFmob25_clip_VF2_1922f %>% group_by() %>% 
+  summarise(min_local_time =    min(local_time,na.rm = TRUE)
+   )
+
+##########################################################################################################################
+str(min_time_fence_1922f_df)
+min_time_fence_1922f_df <- st_set_geometry(min_time_fence_1922f, NULL)
+min_time_fence_1922f_move_df <- st_set_geometry(min_time_fence_1922f_move, NULL)
+min_time_fence_1922f_merge <- rbind(min_time_fence_1922f_df,min_time_fence_1922f_move_df)
+
+fence_details <- c("fence_1922f", "fence_1922f_animal_move")
+animal_move_25 <- data.frame(fence_details, min_time_fence_1922f_merge) 
+
+
+
+######################################################################################################################
+## select date next fence
+VFmob30 <- week1_2_3_select_date %>% 
+  filter(date == "2020-10-30")
+#check that its sensible
+VFmob30 %>% group_by() %>% 
+  summarise(min_local_time =    min(local_time,na.rm = TRUE))#this is just a chcek
+
+
+#clip my selected date VF mob data to the new paddock area
+VFmob30_clip_VF3 <-  st_intersection(VFmob30, long_plains_Vf3)
+
+
+#This VF mob on the 30th that are only in the VF3 location we have some GPS logs that exist on the 30th but when fence 2 was active
+# Using Fence_code clm 
+
+# agersens assigned a code in Fence_code clm for data enteries that relate to this fence
+VFmob30_clip_VF3_11eab <- VFmob30_clip_VF3 %>% 
+  filter(Fence_code=="11eab")
+
+
+##########################################################################################################################
+### when did fence 11eab become active?
+## check what was the min time when Fence_code 1922f existed
+week1_2_3_sf_trans_11eab <-
+  week1_2_3_sf_trans %>% filter(Fence_code == "11eab")
+
+
+min_time_fence_11eab <- week1_2_3_sf_trans_11eab %>% group_by() %>%
+  summarise(min_local_time =  min(local_time, na.rm = TRUE))
+
+
+### when did the first data enetry occur after fence 1922f become active on the 25th and in the VF 2 area?
+min_time_fence_11eab_move <- VFmob30_clip_VF3_11eab %>% group_by() %>% 
+  summarise(min_local_time =    min(local_time,na.rm = TRUE)
+  )
+
+##########################################################################################################################
+
+min_time_fence_11eab_df <- st_set_geometry(min_time_fence_11eab, NULL)
+min_time_fence_11eab_move_df <- st_set_geometry(min_time_fence_11eab_move, NULL)
+min_time_fence_11eab_merge <- rbind(min_time_fence_11eab_df,min_time_fence_11eab_move_df)
+
+fence_details_11eab <- c("fence_11eab", "fence_11eab_animal_move")
+animal_move_30 <- data.frame(fence_details_11eab, min_time_fence_11eab_merge) 
+
+
+##########################################################################################################################
+### put these two togther
+
+animal_move_30 <- animal_move_30 %>%  dplyr::rename("fence_details" = "fence_details_11eab")
+
+animal_move_25_30 <- rbind(animal_move_25, animal_move_30)
+
+##########################################################################################################################
+
+######################################################################################################################
+## select date next fence
+VFmob03 <- week1_2_3_select_date %>% 
+  filter(date == "2020-11-03")
+#check that its sensible
+VFmob03 %>% group_by() %>% 
+  summarise(min_local_time =    min(local_time,na.rm = TRUE))#this is just a chcek
+
+
+#clip my selected date VF mob data to the new paddock area
+VFmob03_clip_VF4 <-  st_intersection(VFmob03, long_plains_Vf4)
+
+
+#This VF mob on the 30th that are only in the VF3 location we have some GPS logs that exist on the 30th but when fence 2 was active
+# Using Fence_code clm 
+
+# agersens assigned a code in Fence_code clm for data enteries that relate to this fence - now there is no fence?
+# I can remove entries that have other fence codes 
+VFmob03_clip_VF4_xxx <- VFmob03_clip_VF4 %>% 
+  filter(Fence_code !="11eab" &Fence_code !="19000" &Fence_code !="1922f")
+
+
+##########################################################################################################################
+### when did fence 11eab become DE active?
+## check what was the min time when Fence_code 1922f existed
+week1_2_3_sf_trans_xxx <-
+  week1_2_3_sf_trans %>% filter(Fence_code !="11eab" & 
+                                  Fence_code !="19000" & 
+                                  Fence_code !="1922f" &
+                                  date == "2020-11-03")
+
+
+min_time_fence_xxx <- week1_2_3_sf_trans_xxx %>% group_by() %>%
+  summarise(min_local_time =  min(local_time, na.rm = TRUE))
+
+
+### when did the first data enetry occur after fence 1922f become active on the 25th and in the VF 2 area?
+min_time_fence_xxx_move <- VFmob03_clip_VF4_xxx %>% group_by() %>% 
+  summarise(min_local_time =    min(local_time,na.rm = TRUE)
+  )
+##########################################################################################################################
+
+min_time_fence_xxx_df <- st_set_geometry(min_time_fence_xxx, NULL)
+min_time_fence_xxx_move_df <- st_set_geometry(min_time_fence_xxx_move, NULL)
+min_time_fence_xxx_merge <- rbind(min_time_fence_xxx_df,min_time_fence_xxx_move_df)
+
+fence_details_xxx <- c("fence_xxx", "fence_xxx_animal_move")
+animal_move_03 <- data.frame(fence_details_xxx, min_time_fence_xxx_merge) 
+
+
+##########################################################################################################################
+animal_move_03 <- animal_move_03 %>%  dplyr::rename("fence_details" = "fence_details_xxx")
+
+animal_move_25_30_03 <- rbind(animal_move_25_30, animal_move_03)
+
+
+
+
+
+
+
+```
+
+fence 2 beacme active at 2020-10-25 10:57:00 and the first data log with fence code 1922f and VF area 2 on the 25th
+was at 2020-10-25 16:27:00 it took the animals almost 6:30 to cross the VF1 into the new grazing area.
+
+fence 3 beacme active at 2020-10-30 08:07:00 and the and the first data log with fence code 11eab and VF area 3 on the 30th
+was at 2020-10-30 08:07:15 it took the animals no time to cross the VF2 into the new grazing area.
+
+This seem a bit too fast, but dont forget that logs only occur every 10 mins.
+But I will double check this.
+
+fence 3 beacme de active at 2020-11-03 11:56:00 according to the notes.
+no fence became active after it was deactivated so I have no way of filter the data entries.
+I have pulled out data on the 2020-11-03 and removed any entries with another fence code, or that are not in the VF4 area.
+But this is meaningless.
+
+There are data entries that exist that dont have fence codes, the fence may be deactiave etc but agersen still capture the data.
+For the VF I only used data entreis that have this fence code eg no deactive VF data is used, but I cant do this when all the fences are deactivated.
+
+So I cant report on when the first animal moved into VF area 4 when the fence became deactivated
+
+
+```{r write up GPS plots first animal  25th, echo=FALSE, message=FALSE, warning=FALSE}
+animal_move_25_30_03
+```
