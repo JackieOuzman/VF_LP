@@ -193,16 +193,16 @@ week2_sf_trans <-
   st_transform(week2_sf, crs = 28354)
 str(week2_sf_trans)
 #######################################################################################
-week2_11aeb_only <- week2_sf_trans %>% filter(fencesID =="11aeb")
-min_time_11aeb <- week2_11aeb_only %>% group_by() %>%
+week2_11eab_only <- week2_sf_trans %>% filter(fencesID =="11eab")
+min_time_11aeb <- week2_11eab_only %>% group_by() %>%
   summarise(min_local_time =  min(local_time, na.rm = TRUE))                                                        
-min_time_11aeb # 2020-10-25 10:57:00 # I am happy with this 
+min_time_11aeb #  2020-10-30 08:07:00 # I am happy with this 
 fence_2_activated <- min_time_1922f
 
 
-window_active1922f <- week1_sf_trans %>% 
-  filter(between(ymd_hms(local_time), ymd_hms("2020-10-25 10:57:00"), ymd_hms("2020-10-25 18:57:00"))) 
-# window_active1922f %>% group_by() %>%
+window_active11eab <- week2_sf_trans %>% 
+  filter(between(ymd_hms(local_time), ymd_hms("2020-10-30 08:07:00"), ymd_hms("2020-10-30 09:07:00"))) 
+# window_active11eab %>% group_by() %>%
 #   summarise(max_local_time =  max(local_time, na.rm = TRUE),
 #             min_local_time =  min(local_time, na.rm = TRUE))
 # View(window_active1922f) #there is not big gap in time the data entries looks corrects
@@ -212,9 +212,10 @@ window_active1922f <- week1_sf_trans %>%
 
 #this is VF mob 5 hour after fence has been deactivated
 #clip my selected date VF mob data to the new paddock area
-active1922F_window_clip_VF2 <-  st_intersection(window_active1922f, long_plains_Vf2)
-View(active1922F_window_clip_VF2)
+active11eab_window_clip_VF3 <-  st_intersection(window_active11eab, long_plains_Vf3)
+#View(active11eab_window_clip_VF3)
 
 #check that its sensible
-fence_2_active_move <- active1922F_window_clip_VF2 %>% group_by() %>% 
+fence_3_active_move <- active11eab_window_clip_VF3 %>% group_by() %>% 
   summarise(min_local_time = min(local_time,na.rm = TRUE))#this is just a chcek
+fence_3_active_move

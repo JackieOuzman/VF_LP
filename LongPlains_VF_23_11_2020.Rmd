@@ -3026,6 +3026,8 @@ week1_2_3_select_date <- week1_2_3_sf_trans %>% filter(date  == "2020-10-21" |
                                                 date  == "2020-10-25" |
                                                 date  == "2020-10-30" |
                                                 date  == "2020-11-03")
+
+week1_2_3_select_date <- week1_2_3_select_date %>%  filter(group == "VF")
 ######################################################################################################################
 ## select date 
 VFmob25 <- week1_2_3_select_date %>% 
