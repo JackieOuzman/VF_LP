@@ -48,8 +48,8 @@ library(maps)
 library(mapdata)
 
 library(raster)
-library(hms)
-library(plyr)
+#library(hms) Add these before I use them?
+#library(plyr)
 
 ```
 
@@ -610,7 +610,7 @@ biomass_ave <- Biomass_samples_2020_all %>%
 
 
 subset_biomass_ave <- biomass_ave %>%
-  filter(Date == as.Date("2020-10-26")& Paddock == "VF1" |
+  dplyr::filter(Date == as.Date("2020-10-26")& Paddock == "VF1" |
   Date == as.Date("2020-10-30")& Paddock == "VF2" |
   Date == as.Date("2020-11-03")& Paddock == "VF3" |
   Date == as.Date("2020-11-06")& Paddock == "VF4" )
@@ -3481,4 +3481,14 @@ ggplot() +
   facet_wrap(.~ min_round_10mins)
 
 ```
+
+#### 4. Behaviours
+
+Dana / Caroline: We like the plot of grazing/resting/moving across all animals together (so not the individual animal plots). Probably no stats analyses because the unit is the group and we only have 1 group of each. But, could you include mean % values for each behaviour (+SE) for the first 3 days for each group AND mean total values (+SE) for each group across the trial (just as values to include in the text). We would refer to it in
+the discussion, we anticipate if there are substantial differences, it would be in the first few days. 
+
+
+Jackie: I assume you still want VF and control mob plotted seperately?
+
+
 
