@@ -3001,6 +3001,21 @@ If the values in “fenceID” column as blank, this means there is no active vi
 5. There is a lag between when the fence is moved appox 10mins
 
 There are a couple of ways to do this and nothing is perfect.
+I have worked out when the VF has become active and for fence 3 when it is active and deactive. 
+Using this date time pulled out a window of time close to the femce move.
+Then I have selected data in the new VF area only and reported the smallest time value.
+
+VF Fence 2 -25th
+From activation to animals moving to new VF area (VF2 area) took approx 6hrs
+
+VF Fence 3 - 30th
+From activation to animals moving to new VF area (VF3 area) took approx 15 sections
+This doesnt seem correct.
+I tried a different approach and got the same ans
+When you look at the plots it appears an animals was alraedy there!
+
+Deactivation VF Fence 3 - 3rd
+From deactivation to animals moving to new VF area (VF4 area) took approx 7 hours
 
 
 
@@ -3199,24 +3214,7 @@ animal_move_25_30_03 <- rbind(animal_move_25_30, animal_move_03)
 
 ```
 
-fence 2 beacme active at 2020-10-25 10:57:00 and the first data log with fence code 1922f and VF area 2 on the 25th
-was at 2020-10-25 16:27:00 it took the animals almost 6:30 to cross the VF1 into the new grazing area.
 
-fence 3 beacme active at 2020-10-30 08:07:00 and the and the first data log with fence code 11eab and VF area 3 on the 30th
-was at 2020-10-30 08:07:15 it took the animals no time to cross the VF2 into the new grazing area.
-
-This seem a bit too fast, but dont forget that logs only occur every 10 mins.
-But I will double check this.
-
-fence 3 beacme de active at 2020-11-03 11:56:00 according to the notes.
-no fence became active after it was deactivated so I have no way of filter the data entries.
-I have pulled out data on the 2020-11-03 and removed any entries with another fence code, or that are not in the VF4 area.
-But this is meaningless.
-
-There are data entries that exist that dont have fence codes, the fence may be deactiave etc but agersen still capture the data.
-For the VF I only used data entreis that have this fence code eg no deactive VF data is used, but I cant do this when all the fences are deactivated.
-
-So I cant report on when the first animal moved into VF area 4 when the fence became deactivated
 
 
 ```{r write up GPS plots first animal different approach, message=FALSE, warning=FALSE, include=FALSE}
@@ -3441,7 +3439,8 @@ ggplot() +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "deactivation of fence 3 2020-11-03 11:56:00")+
+  labs(title= "deactivation of fence 3 2020-11-03 11:56:00",
+       subtitle = "facet wrap is every hour" )+
   facet_wrap(.~ hours)
 
 #####################################################################################
@@ -3457,7 +3456,8 @@ ggplot() +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Activation of fence 2 2020-10-25 10:57:00")+
+  labs(title= "Activation of fence 2 2020-10-25 10:57:00",
+       subtitle = "facet wrap is every hour" )+
   facet_wrap(.~ hours)
 #####################################################################################
 #Plot all data / animals in window - facet is the hours
@@ -3465,8 +3465,10 @@ window_active11eab <- window_active11eab %>%
   mutate(time = hms::as_hms(local_time),
          hours = substr(time, 1, 2),
          mins = substr(time, 4, 5),
-         min_round_10mins = round_any(as.double(mins), 10))
+         min_round_10mins = plyr::round_any(as.double(mins), 10))
 
+#library(hms) Add these before I use them?
+#library(plyr)
 
 ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
@@ -3489,6 +3491,127 @@ the discussion, we anticipate if there are substantial differences, it would be 
 
 
 Jackie: I assume you still want VF and control mob plotted seperately?
+The three days are the 21-10 to 23-10.
+
+```{r write up behaviours, message=FALSE, warning=FALSE, include=FALSE}
+
+week1_2_3_activity <- week1_2_3_animal_per_day_activity %>% 
+  group_by(activity, group)%>%
+  summarise(activity_mean = mean(value, na.rm = TRUE),
+            activity_SD =sd(value,  na.rm =TRUE),
+            activity_SE=activity_SD/sqrt(n()))
+
+week1_2_3_activity <- week1_2_3_activity %>% 
+  mutate( activity = case_when(
+    activity == "av_grazing" ~ "grazing",
+    activity == "av_moving" ~ "moving",
+    activity == "av_resting" ~ "resting"
+  ))
+          
+week1_2_3_activity %>%
+  ggplot(aes(x = group , y = activity_mean)) +
+  geom_col(aes(fill = activity), width = 0.7)+
+  theme_classic() +
+  #facet_wrap(.~ group)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Mob",
+    y = "% time attributed to activity",
+    title = paste("Behaviour for all animals")
+  )
+#Another plot option
+
+week1_2_3_activity %>%
+  ggplot(aes(x = group , y = activity_mean)) +
+  geom_col()+
+  theme_classic() +
+  facet_wrap(.~ activity)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Mob",
+    y = "% time attributed to activity",
+    title = paste("Behaviour for all animals")
+  )
+
+week1_2_3_activity
+#using summary data per animal per day per group per activity 
+#"week1_2_3_animal_per_day_activity"
+#I have extracting the first 3 days 
+# Activation of VF 1 	2020-10-21 to the 	2020-10-23
+
+week1_2_3_animal_per_day_activity <- ungroup(week1_2_3_animal_per_day_activity)
+week1_2_3_animal_per_day_activity_3days <-
+  week1_2_3_animal_per_day_activity %>% 
+  filter(between(date, 
+                 as.Date("2020-10-21"), as.Date("2020-10-23")))
+         
+min(week1_2_3_animal_per_day_activity_3days$date)                
+max(week1_2_3_animal_per_day_activity_3days$date)               
 
 
+str(week1_2_3_animal_per_day_activity_3days)
+activity_sum_3days <- week1_2_3_animal_per_day_activity_3days %>% 
+  group_by(activity, group)%>%
+  summarise(activity_mean_3days = mean(value, na.rm = TRUE),
+            activity_SD_3days =sd(value,  na.rm =TRUE),
+            activity_SE_3days=activity_SD_3days/sqrt(n()))
 
+
+activity_sum_3days <- activity_sum_3days %>% 
+  mutate( activity = case_when(
+    activity == "av_grazing" ~ "grazing 3days",
+    activity == "av_moving" ~ "moving 3days",
+    activity == "av_resting" ~ "resting 3days"
+  ))
+activity_sum_3days <- activity_sum_3days %>% 
+  rename(activity_mean = activity_mean_3days,
+         activity_SE = activity_SE_3days) %>% 
+  dplyr::select(activity,
+                group,
+                activity_mean,
+                activity_SE)
+week1_2_3_activity <- week1_2_3_activity %>% 
+  dplyr::select(activity,
+                group,
+                activity_mean,
+                activity_SE)
+activity_sum_3days
+week1_2_3_activity
+activity_summary <- rbind(activity_sum_3days,week1_2_3_activity )
+activity_summary <- activity_summary %>%  arrange(group, activity )
+
+
+```
+
+
+```{r write up behaviours results, echo=FALSE, message=FALSE, warning=FALSE}
+
+week1_2_3_activity %>%
+  ggplot(aes(x = group , y = activity_mean)) +
+  geom_col(aes(fill = activity), width = 0.7)+
+  theme_classic() +
+  #facet_wrap(.~ group)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Mob",
+    y = "% time attributed to activity",
+    title = paste("Behaviour for all animals")
+  )
+#Another plot option
+
+week1_2_3_activity %>%
+  ggplot(aes(x = group , y = activity_mean)) +
+  geom_col()+
+  theme_classic() +
+  facet_wrap(.~ activity)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(
+    x = "Mob",
+    y = "% time attributed to activity",
+    title = paste("Behaviour for all animals")
+  )
+
+activity_summary
+
+
+```
