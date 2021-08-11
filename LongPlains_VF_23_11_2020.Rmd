@@ -2918,12 +2918,15 @@ Dana / Caroline: We think body weight can just be reported in the text (no stats
 
 Jackie: total weight gain after 18 days measure in kg??? not on the data entry sheet
 
-mean weight gain = 24.03 SE 1.89
+mean weight gain 
+
+control = 25.7 SE 2.53
+VF     =  22.4 SE 2.81
 
 ```{r write up body , echo=TRUE, message=FALSE, warning=FALSE}
 
 
-body_wt_summary <- animal_wt %>% group_by("Mob Name") %>%
+body_wt_summary <- animal_wt %>% group_by(`Mob Name`) %>%
   summarise(
     Weight_gain_mean = mean(`Weight gain` ,  na.rm = TRUE),
     Weight_gain_SD = sd(`Weight gain`,  na.rm = TRUE),
@@ -3634,6 +3637,12 @@ Jackie: One approach would be to produce a heat map of where the animals rested.
 2. create a new dataset which has a regular time interval (not sure how frequent this would be perhaps every 15mins?)
 2.plot this onto a grid and count the observation in the grid for all animals in the mob on each day.
 
- 
+```{r write resting spots working, message=FALSE, warning=FALSE, include=FALSE}
+
+
+#good place to start would be  
+
+write.csv(week1_2_3, "W:/VF/LongPlain/R_scripts_etc/VF_LP/resting_spots_for_paper/week1_2_3_start.csv")
+```
 
 
