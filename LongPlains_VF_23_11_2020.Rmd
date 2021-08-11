@@ -3615,3 +3615,25 @@ activity_summary
 
 
 ```
+
+
+#### 4. Resting Plots
+
+Dana / Caroline: Only additional analysis we thought could be interesting would be to plot where the animals rest in the paddock. 
+
+Since resting is stationary, the intermittent GPS sampling should be less of an issue. 
+
+We were interested if the changing fences had any impact on where the animals preferred to rest relative to the control . 
+
+I.e. did their resting spot change as the paddock inclusion area got larger in the VF group? 
+
+We think this would be interesting and new from our perspective, but if it is going to be days and days to get that analysis done then it probably isn’t worth the time. 
+
+Jackie: One approach would be to produce a heat map of where the animals rested.
+1.extract all of the resting data from the dataset.
+2. create a new dataset which has a regular time interval (not sure how frequent this would be perhaps every 15mins?)
+2.plot this onto a grid and count the observation in the grid for all animals in the mob on each day.
+
+ 
+
+
