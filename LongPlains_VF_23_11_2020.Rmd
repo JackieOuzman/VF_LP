@@ -49,7 +49,7 @@ library(mapdata)
 
 library(raster)
 library(hms)
-
+library(plyr)
 
 ```
 
@@ -3424,7 +3424,7 @@ animal_move_25_03_30 <- rbind(animal_move_25_03, animal_move_30)
 
 ```
 
-```{undefined echo=FALSE}
+```{r write up GPS plots first animal  results, echo=FALSE, message=FALSE, warning=FALSE}
 #Summary of times animals move into new grazing area
 
 animal_move_25_03_30
@@ -3441,7 +3441,7 @@ ggplot() +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "deactivation of fence 4 2020-11-03 11:56:00")+
+  labs(title= "deactivation of fence 3 2020-11-03 11:56:00")+
   facet_wrap(.~ hours)
 
 #####################################################################################
@@ -3449,7 +3449,7 @@ ggplot() +
 window_active1922f <- window_active1922f %>% 
   mutate(time = hms::as_hms(local_time),
          hours = substr(time, 1, 2))  
-View(window_active1922f)
+
 ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
   geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
@@ -3461,13 +3461,13 @@ ggplot() +
   facet_wrap(.~ hours)
 #####################################################################################
 #Plot all data / animals in window - facet is the hours
-window_active11eab <- window_active11eab %>% 
+window_active11eab <- window_active11eab %>%
   mutate(time = hms::as_hms(local_time),
          hours = substr(time, 1, 2),
          mins = substr(time, 4, 5),
-         min_round_10mins = round_any(as.double(mins), 10))  
-str(window_active11eab)
-View(window_active11eab)
+         min_round_10mins = round_any(as.double(mins), 10))
+
+
 ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
   geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
