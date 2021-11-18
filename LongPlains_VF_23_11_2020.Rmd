@@ -213,10 +213,12 @@ long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
 ####
 
 Biomass_samples_2020_all <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
-    sheet = "All_Biomass", col_types = c("date", 
-        "text", "text", "numeric", "numeric", 
-        "numeric", "numeric", "text", "text", 
-        "numeric", "numeric"))
+                                       sheet = "All_Biomass", col_types = c("date", 
+                                                                            "text", "text", "numeric", "numeric", 
+                                                                            "text", "text", "numeric", "numeric", 
+                                                                            "numeric", "numeric", "text", "text", 
+                                                                            "text", "text", "text", "text", "text"))
+
 #unique(Biomass_samples_2020_all$Date)
 
 #turn theses df into shapefiles
@@ -295,11 +297,16 @@ post_graze_cc_NDVI <- raster("W:/VF/LongPlain/CC/CC post graze/NDVI/Vesper/CC_po
 
 
 # make a data frame with sptail data
+
+
 Biomass_samples_2020_all <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
                                        sheet = "All_Biomass", col_types = c("date", 
                                                                             "text", "text", "numeric", "numeric", 
+                                                                            "text", "text", "numeric", "numeric", 
                                                                             "numeric", "numeric", "text", "text", 
-                                                                            "numeric", "numeric"))
+                                                                            "text", "text", "text", "text", "text"))
+
+
 #unique(Biomass_samples_2020_all$Date)
 
 #turn theses df into shapefiles
@@ -587,10 +594,14 @@ extract_pre_post_graze %>%
 ```{r biomass cuts ave, echo=FALSE, message=FALSE, warning=FALSE}
 
 Biomass_samples_2020_all <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
-    sheet = "All_Biomass", col_types = c("date", 
-        "text", "text", "numeric", "numeric", 
-        "numeric", "numeric", "text", "text", 
-        "numeric", "numeric"))
+                                       sheet = "All_Biomass", 
+                                       range =  "A1:H101", #8clms
+                                       col_types = c("date",   "text", "text", 
+                                                     "numeric", "numeric", 
+                                                                           
+                                                      "text", "text",
+                                                      "numeric"))
+
 
 
 
