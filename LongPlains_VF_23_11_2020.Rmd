@@ -48,6 +48,7 @@ library(maps)
 library(mapdata)
 
 library(raster)
+library(formattable)
 #library(hms) Add these before I use them?
 #library(plyr)
 
@@ -900,7 +901,7 @@ biomass_ave <- Biomass_samples_2020_all %>%
  #         SD_biomass = round(SD_biomass,2))
 
 
-library(formattable)
+
 biomass_ave %>% 
   formattable()
 
@@ -1549,9 +1550,16 @@ filter(timing == "pre_graze" | timing =="last day of trial") %>%
 
 ## Pre and post grazing for paper.
 
+The analysis of the count data should not be done with t.test or anova.
+
+Poisson regression is a good option
+
+https://rcompanion.org/handbook/J_01.html
+
+# Avearge table
 
 ```{r weeds results for paper, echo=FALSE, message=FALSE, warning=FALSE}
-weeds <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
+weeds1 <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx", 
                     sheet = "All_Weeds", col_types = c("date", 
                                                        "text", "text", "numeric", "numeric", "text", 
                                                        "text", "text", "numeric", "numeric", 
@@ -1560,18 +1568,18 @@ weeds <- read_excel("W:/VF/LongPlain/biomass/Biomass samples 2020_Jax.xlsx",
                           
 
 #str(weeds)
-weeds <- weeds %>% mutate(
+weeds1 <- weeds1 %>% mutate(
   pre_post = case_when(
     timing == "pre_graze" ~ "pre graze",
     timing == "last day of trial" ~ "post graze",
   )
 )
 
-weeds <- weeds %>%  dplyr::filter(!is.na(pre_post))
+weeds1 <- weeds1 %>%  dplyr::filter(!is.na(pre_post))
 
 #unique(weeds$Location)
 
-weeds <- weeds %>% mutate(
+weeds1 <- weeds1 %>% mutate(
   location_2 = case_when(
     Location == "VF" ~ "VF",
     Location == "buffer" ~ "open-graze",
@@ -1580,9 +1588,9 @@ weeds <- weeds %>% mutate(
 )
 
 #str(weeds)
-weeds <- weeds %>% dplyr::select(pre_post, location_2, total_weeds, "Rye Grass", heads)
+weeds1 <- weeds1 %>% dplyr::select(pre_post, location_2, total_weeds, "Rye Grass", heads)
 
-weeds_summary <- weeds %>% group_by(pre_post, location_2) %>%
+weeds_summary <- weeds1 %>% group_by(pre_post, location_2) %>%
   summarise(
     av_total_weeds =     mean(total_weeds, na.rm = TRUE),
     st_dev_total_weeds = sd(total_weeds, na.rm = TRUE),
@@ -1616,6 +1624,40 @@ weeds_summary %>%
 
 ```
 
+
+
+```{r weeds counts results for paper, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+weeds_summary_total_sum <- weeds1 %>% group_by(pre_post, location_2) %>%
+  summarise(
+    sum_total_weeds =     sum(total_weeds, na.rm = TRUE),
+    sum_Rye_Grass =       sum(`Rye Grass`, na.rm = TRUE),
+    sum_heads =           sum(heads, na.rm = TRUE))
+   
+weeds_summary_total_sum
+
+
+weeds_summary_total <- weeds_summary %>% 
+  mutate(av_total_weeds = round(av_total_weeds,2),
+          st_dev_total_weeds = round(st_dev_total_weeds,2),
+         
+         av_Rye_Grass = round(av_Rye_Grass,2),
+          st_dev_Rye_Grass = round(st_dev_Rye_Grass,2),
+         
+         av_heads = round(av_heads,2),
+          st_dev_heads = round(st_dev_heads,2)
+         
+         )
+
+
+
+weeds_summary %>% 
+  formattable()
+
+
+```
 
 
 ## Weeds in the VF paddocks 
