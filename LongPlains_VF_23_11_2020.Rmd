@@ -3110,7 +3110,7 @@ animal_wt <-   filter(animal_wt, !is.na (`Animal Name`))
 
 ```
 
-
+Box plot mob
 
 
 ```{r animal_wts box plots, echo=FALSE, message=FALSE, warning=FALSE}
@@ -3133,62 +3133,35 @@ ggplot(animal_wt, aes(x= `Mob Name`, y= `% gain`)) +
        y= "% weight gain",
        title = "",
        caption = "")
+```
 
+precentage weight gain
+
+```{r percen weight gain, echo=FALSE, message=FALSE, warning=FALSE}
 mean_animal_wt_perc <- animal_wt %>% 
   group_by(`Mob Name`)%>% 
   summarise(
     mean_perc_gain = mean(`% gain`     , na.rm =TRUE))
 mean_animal_wt_perc
 
-
-### weight gain totals for mob
-
-animal_wt %>%
-  ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
-  geom_col()+
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(x = "Mob",
-       y= "weight gain",
-       title = "",
-       caption = "total weight gain after 18 days")
+```
 
 
-mean_animal_wt_gain <- animal_wt %>% 
-  group_by(`Mob Name`)%>% 
-  summarise(
-    mean_wt_gain = mean(`Weight gain`     , na.rm =TRUE))
-mean_animal_wt_gain
-
-
-
-animal_wt %>%
-  ggplot(aes(x= `Mob Name`, y= Daily_weight_gain)) +
-  geom_col()+
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(x = "Mob",
-       y= "daily weight gain",
-       title = "",
-       caption = "Daily weight gain")
+mean daily weight gain
+```{r mean daily weight gain, echo=FALSE, message=FALSE, warning=FALSE}
 
 mean_Daily_weight_gain <- animal_wt %>% 
   group_by(`Mob Name`)%>% 
   summarise(
-    mean_daily_wt_gain = mean(Daily_weight_gain     , na.rm =TRUE))
+    mean_daily_wt_gain = mean(Daily_weight_gain     , na.rm =TRUE),
+    mean_daily_wt_gain_SD = sd(Daily_weight_gain,  na.rm = TRUE),
+    mean_daily_wt_gain_SE = mean_daily_wt_gain_SD / sqrt(n()))
 mean_Daily_weight_gain
 
+```
 
-animal_wt %>%
-  ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
-  geom_col()+
-  facet_wrap(.~ Breed)+
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(x = "Mob",
-       y= "weight gain",
-       title = "",
-       caption = "")
+
+```{r mean daily weight gain breed and sex, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
 
 mean_Daily_weight_gain_breed <- animal_wt %>% 
@@ -3200,16 +3173,7 @@ mean_Daily_weight_gain_breed
 
 
 
-animal_wt %>%
-  ggplot(aes(x= `Mob Name`, y= `Weight gain`)) +
-  geom_col()+
-  facet_wrap(.~ Sex)+
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(x = "Mob",
-       y= "weight gain",
-       title = "",
-       caption = "")
+
 
 mean_Daily_weight_gain_sex <- animal_wt %>% 
   group_by(`Mob Name`,Sex )%>% 
@@ -3219,9 +3183,9 @@ mean_Daily_weight_gain_sex
 
 
 
-
-
 ```
+
+
 
 
 
@@ -3243,13 +3207,34 @@ summary(animal_wts_aov)
 # total weight gain for mob
 weight_gain <- animal_wt %>% 
   group_by(`Mob Name`) %>% 
-  summarise(`total weight gain` = sum(`Weight gain`))
+  summarise(`total weight gain` = sum(`Weight gain`),
+            `total weight gain SD` = sd(`Weight gain`,  na.rm = TRUE),
+            `total weight gain SE` = `total weight gain SD` / sqrt(n()))
+
+
 weight_gain
 
 ```
 
 
+```{r animal wt gains  per animals per day, echo=TRUE, message=FALSE, warning=FALSE}
+# animal_wt 
 
+
+
+
+
+# total weight gain for animal per day
+weight_gain-per_animals_per_day <- animal_wt %>% 
+  group_by(`Mob Name`) %>% 
+  summarise(`total weight gain` = sum(`Weight gain`),
+            `total weight gain SD` = sd(`Weight gain`,  na.rm = TRUE),
+            `total weight gain SE` = `total weight gain SD` / sqrt(n()))
+
+
+weight_gain
+
+```
 
 
 
@@ -3302,7 +3287,7 @@ prop_audio_of_cues_summary <- prop_audio_of_cues_per_animal %>% group_by() %>%
                        )
 prop_audio_of_cues_summary
 
-````
+```
 
 
 
