@@ -51,6 +51,7 @@ library(raster)
 library(formattable)
 #library(hms) Add these before I use them?
 #library(plyr)
+library(ggpubr)
 
 ```
 
@@ -1367,12 +1368,126 @@ check3
 
 ```
 
+# Results for the paper
 
-### Write up details 09-08-2021 and Dec 2021
+## Write up details 09-08-2021 and Dec 2021
+
+### 1. Animal weights
+
+
+At the end of the trial.
+
+Weight gain expressed as:
+
+- % gain clm M
+
+- total gain (check the units ? grams) clm K
+
+- Daily weight gain clm L
+
+ W:/VF/LongPlain/Animal_ID/Long Plains animal weight pre post Nov 2020 collar correction done.xlsx
 
 
 
-#### 1. audio/pulse
+
+### mean daily weight gain
+
+```{r mean daily weight gain, echo=FALSE, message=FALSE, warning=FALSE}
+
+animal_wt <- read_excel("W:/VF/LongPlain/Animal_ID/Long Plains animal weight pre post Nov 2020 collar correction done.xlsx")
+
+#str(animal_wt)
+animal_wt <- dplyr::select(animal_wt,
+                           `Mob Name`,
+                           `Neckband Serial`,
+                           `Animal Name`,
+                           `Visual Tag ID`,
+                           `NLIS ID`,
+                           `Sex`,
+                           `Breed`,
+                           `% gain`,
+                           'Weight gain',
+                           Daily_weight_gain = `Daily weight gain  (18 days)`)
+
+
+animal_wt <-   filter(animal_wt, !is.na (`Animal Name`))
+
+
+mean_Daily_weight_gain <- animal_wt %>% 
+  group_by(`Mob Name`)%>% 
+  summarise(
+    mean_daily_wt_gain = mean(Daily_weight_gain     , na.rm =TRUE),
+    mean_daily_wt_gain_SD = sd(Daily_weight_gain,  na.rm = TRUE),
+    mean_daily_wt_gain_SE = mean_daily_wt_gain_SD / sqrt(n()))
+mean_Daily_weight_gain
+
+```
+
+
+
+
+### Animals weight gains stats
+
+No significant weight gain differences between Mob
+
+
+```{r animal wt gains  stats, echo=TRUE, message=FALSE, warning=FALSE}
+# animal_wt 
+
+
+#str(animal_wt)
+animal_wts_aov <- aov(`Weight gain` ~ `Mob Name` , data = animal_wt)
+
+summary(animal_wts_aov)
+
+
+# total weight gain for mob
+weight_gain <- animal_wt %>% 
+  group_by(`Mob Name`) %>% 
+  summarise(`total weight gain` = sum(`Weight gain`),
+            `total weight gain SD` = sd(`Weight gain`,  na.rm = TRUE),
+            `total weight gain SE` = `total weight gain SD` / sqrt(n()))
+
+
+weight_gain
+
+```
+
+
+
+Dana / Caroline: We think body weight can just be reported in the text (no stats analyses, just the values). Mean (+SE) gain per group perhaps? Because we do only have the 1 vs 1 for our treatment/control, we don’t want to conclude too much. 
+
+Jackie: total weight gain after 18 days measure in kg??? not on the data entry sheet
+
+mean weight gain 
+
+control = 25.7 SE 2.53
+VF     =  22.4 SE 2.81
+
+```{r write up body , echo=TRUE, message=FALSE, warning=FALSE}
+
+
+body_wt_summary <- animal_wt %>% group_by(`Mob Name`) %>%
+  summarise(
+    Weight_gain_mean = mean(`Weight gain` ,  na.rm = TRUE),
+    Weight_gain_SD = sd(`Weight gain`,  na.rm = TRUE),
+    Weight_gain_SE = Weight_gain_SD / sqrt(
+      n()),
+      `% gain_mean` = mean(`% gain`,  na.rm = TRUE),
+      percent_gain_SD = sd(`% gain`,  na.rm = TRUE),
+      percent_gain_SE = percent_gain_SD / sqrt(n())
+    )
+body_wt_summary
+
+
+
+```
+
+
+
+
+
+#### 2. audio/pulse
 
 Dana / Caroline: For the audio/pulse, we think just an average proportion in the text included SE would be sufficient rather than any graphs. Could this be the proportion of audio cues relative to total signals? We are anticipating it would be around 0.8. (No stats analyses, just the values)
 
@@ -1465,7 +1580,7 @@ last_record_summary_stats
 
 
 
-#### 4. Behaviors
+### 3. Behaviors
 
 Dana / Caroline: We like the plot of grazing/resting/moving across all animals together (so not the individual animal plots). Probably no stats analyses because the unit is the group and we only have 1 group of each. But, could you include mean % values for each behavior (+SE) for the first 3 days for each group AND mean total values (+SE) for each group across the trial (just as values to include in the text). We would refer to it in
 the discussion, we anticipate if there are substantial differences, it would be in the first few days. 
@@ -1480,6 +1595,7 @@ I assume you still want VF and control mob plotted separately?
 The three days are the 21-10 to 23-10.
 
 ```{r write up behaviours, message=FALSE, warning=FALSE, include=FALSE}
+
 
 week1_2_3_animal_per_day_activity <- week1_2_3 %>% group_by(date, group, deviceName) %>% 
   summarise(av_resting = mean( resting., na.rm = TRUE),
@@ -1509,31 +1625,9 @@ week1_2_3_activity <- week1_2_3_activity %>%
     activity == "av_moving" ~ "moving",
     activity == "av_resting" ~ "resting"
   ))
-          
-week1_2_3_activity %>%
-  ggplot(aes(x = group , y = activity_mean)) +
-  geom_col(aes(fill = activity), width = 0.7)+
-  theme_classic() +
-  #facet_wrap(.~ group)+
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(
-    x = "Mob",
-    y = "% time attributed to activity",
-    title = paste("Behavior for all animals")
-  )
-#Another plot option
 
-week1_2_3_activity %>%
-  ggplot(aes(x = group , y = activity_mean)) +
-  geom_col()+
-  theme_classic() +
-  facet_wrap(.~ activity)+
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(
-    x = "Mob",
-    y = "% time attributed to activity",
-    title = paste("Behavior for all animals")
-  )
+
+
 
 week1_2_3_activity
 #using summary data per animal per day per group per activity 
@@ -1546,7 +1640,7 @@ week1_2_3_animal_per_day_activity_3days <-
   week1_2_3_animal_per_day_activity %>% 
   filter(between(date, 
                  as.Date("2020-10-21"), as.Date("2020-10-23")))
-         
+
 min(week1_2_3_animal_per_day_activity_3days$date)                
 max(week1_2_3_animal_per_day_activity_3days$date)               
 
@@ -1572,15 +1666,87 @@ activity_sum_3days <- activity_sum_3days %>%
                 group,
                 activity_mean,
                 activity_SE)
-week1_2_3_activity <- week1_2_3_activity %>% 
+
+################################################################################
+week1_2_3_animal_per_day_activity_3days_onwards <-
+  week1_2_3_animal_per_day_activity %>% 
+  filter(date > as.Date("2020-10-23"))
+  # filter(between(date, 
+  #                as.Date("2020-10-21"), as.Date("2020-10-23")))
+
+min(week1_2_3_animal_per_day_activity_3days_onwards$date)                
+max(week1_2_3_animal_per_day_activity_3days_onwards$date)               
+
+
+str(week1_2_3_animal_per_day_activity_3days_onwards)
+activity_sum_3days_onwards <- week1_2_3_animal_per_day_activity_3days_onwards %>% 
+  group_by(activity, group)%>%
+  summarise(activity_mean_3days_onwards = mean(value, na.rm = TRUE),
+            activity_SD_3days_onwards =sd(value,  na.rm =TRUE),
+            activity_SE_3days_onwards=activity_SD_3days_onwards/sqrt(n()))
+
+
+activity_sum_3days_onwards <- activity_sum_3days_onwards %>% 
+  mutate( activity = case_when(
+    activity == "av_grazing" ~ "grazing excluding first 3days",
+    activity == "av_moving" ~ "moving excluding first 3days",
+    activity == "av_resting" ~ "resting excluding first 3days"
+  ))
+activity_sum_3days_onwards <- activity_sum_3days_onwards %>% 
+  rename(activity_mean = activity_mean_3days_onwards,
+         activity_SE = activity_SE_3days_onwards) %>% 
   dplyr::select(activity,
                 group,
                 activity_mean,
                 activity_SE)
+
 activity_sum_3days
-week1_2_3_activity
-activity_summary <- rbind(activity_sum_3days,week1_2_3_activity )
+activity_sum_3days_onwards
+
+activity_summary <- rbind(activity_sum_3days,activity_sum_3days_onwards )
+activity_summary
 activity_summary <- activity_summary %>%  arrange(group, activity )
+
+################# results
+
+activity_summary <- activity_summary %>% 
+  mutate(time_period = case_when(
+    activity == "grazing excluding first 3days" ~ "full trial",
+    activity == "moving excluding first 3days" ~ "full trial",
+    activity == "resting excluding first 3days" ~ "full trial",
+    
+    activity == "grazing 3days" ~ "3 days",
+    activity == "resting 3days" ~ "3 days",
+    activity == "moving 3days" ~ "3 days"
+  ))
+
+
+activity_summary <- activity_summary %>% 
+  mutate(activity_type = case_when(
+    activity == "grazing excluding first 3days" ~ "grazing",
+    activity == "moving excluding first 3days" ~ "moving",
+    activity == "resting excluding first 3days" ~ "resting",
+    
+    activity == "grazing 3days" ~ "grazing",
+    activity == "resting 3days" ~ "resting",
+    activity == "moving 3days" ~ "moving"
+  ))
+
+activity_summary
+
+activity_summary %>%
+  filter(group == "VF") %>% 
+  ggplot(aes(x = time_period , y = activity_mean, fill = time_period)) +
+  geom_col()+
+  scale_fill_manual(values = c("grey", "grey50"))+
+  theme_classic() +
+  facet_wrap(.~ factor(activity_type, levels=c('resting','grazing','moving')))+
+  geom_errorbar(position=position_dodge(.9), width=.25, aes(ymin=activity_mean-activity_SE, ymax=activity_mean+activity_SE)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x=element_blank())+
+  labs(
+    x = "VF Mob",
+    y = "% time attributed to activity")
 
 
 ```
@@ -1620,11 +1786,11 @@ week1_2_3_activity %>%
  mutate(across(where(is.numeric), ~ round(., digits = 2))) %>% 
    formattable()
 
-#activity_summary
+
 
 ```
 
-## Run an t-test, is the two groups of animals displaying different behaviours?
+#### Run an t-test on behaviours?
 
 - Are open graze animals doing more resting than the VF animlas?
 - Are open graze animals doing more grazing than the VF animlas?
@@ -1673,124 +1839,103 @@ t_test_behaviour %>%
 ```
 
 
+#### Behaviours on first 3 days vs the rest of the trial.
 
+First three days are 21/10 to 23/10
+Excluding the first three days are 24/10 to 09/11.
 
-## Plot activity results
- 
-
-These values are not cumulative.
-
-Each data line (and associated time is independent from the time before).
-
-However each line (row) is a summary of the animals activity in a 10 min window.
-
-
-The below plots are the average per animal per day for the nominated activity.
-
-The data is grouped into date and collar ID (and control or VF animals)
+```{r write up behaviours test 3 days vs full trial, echo=FALSE, message=FALSE, warning=FALSE}
+#Add another clm for time periods
 
 
 
+activity_summary %>%
+  filter(group == "VF") %>% 
+  ggplot(aes(x = time_period , y = activity_mean, fill = time_period)) +
+  geom_col()+
+  scale_fill_manual(values = c("grey", "grey50"))+
+  theme_classic() +
+  facet_wrap(.~ factor(activity_type, levels=c('resting','grazing','moving')))+
+  geom_errorbar(position=position_dodge(.9), width=.25, aes(ymin=activity_mean-activity_SE, ymax=activity_mean+activity_SE)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x=element_blank())+
+  labs(
+    x = "VF Mob",
+    y = "% time attributed to activity")
+```
 
 
-```{r lying_standing for VF1 mob, echo=FALSE, message=FALSE, warning=FALSE}
+```{r write up behaviours test 3 days vs full trial t test, echo=FALSE, message=FALSE, warning=FALSE}
 
-
-
-  
-check3 <- week1_2_3 %>% 
-  group_by(date, group) %>% 
-  summarise(reading = n())  
-
-week1_2_3_animal_per_day_activity <- week1_2_3 %>% group_by(date, group, deviceName) %>% 
+first_days_behaviour_test <- week1_2_3 %>% group_by(date, group, deviceName) %>% 
   summarise(av_resting = mean( resting., na.rm = TRUE),
             av_moving = mean( moving., na.rm = TRUE),
             av_grazing = mean( grazing., na.rm = TRUE))
 
+first_days_behaviour_test <- first_days_behaviour_test %>% 
+  mutate(paddock = case_when(
+    group == "control" ~ "open grazed",
+    group == "VF" ~ "VF"
+  ))
 
 
-week1_2_3_animal_per_day_activity <- pivot_longer(week1_2_3_animal_per_day_activity,
-                                                  cols = c("av_resting", "av_moving", "av_grazing"),
-                                                  names_to = "activity")
+first_days_behaviour_test <- ungroup(first_days_behaviour_test)
+### split into two groups 
+first_days_behaviour_test_1 <- first_days_behaviour_test %>% 
+  filter(between(date, 
+                 as.Date("2020-10-21"), as.Date("2020-10-23"))) %>% 
+  mutate(time_period = "first_3_days")
+
+first_days_behaviour_test_2 <- first_days_behaviour_test %>% 
+  filter(date > as.Date("2020-10-23"))%>% 
+  mutate(time_period = "exclude_first_3_days")
+
+min(first_days_behaviour_test_1$date)                
+max(first_days_behaviour_test_1$date)
+
+min(first_days_behaviour_test_2$date)                
+max(first_days_behaviour_test_2$date)               
+
+first_days_behaviour_test_1_2 <- rbind(first_days_behaviour_test_1,first_days_behaviour_test_2 )
+str(first_days_behaviour_test_1_2)
+first_days_behaviour_test_1_2_VF <- first_days_behaviour_test_1_2 %>% 
+  filter(paddock == "VF")
+
+## resting for on VF
+
+t.test_resting_first_days <-compare_means(av_resting ~ time_period,  data = first_days_behaviour_test_1_2_VF, 
+                               method = "t.test")
+
+t.test_grazing_first_days <-compare_means(av_grazing ~ time_period,  data = first_days_behaviour_test_1_2_VF, 
+                               method = "t.test")
+t.test_moving_first_days <-compare_means(av_moving ~ time_period,  data = first_days_behaviour_test_1_2_VF, 
+                              method = "t.test")
 
 
-
-
-
-week1_2_3_animal_per_day_activity %>%
-  filter(group == "VF") %>% 
-  ggplot(aes(x = date , y = value)) +
-  geom_col(aes(fill = activity), width = 0.7)+
-  theme_classic() +
-  facet_wrap(.~ deviceName)+
-  geom_vline(xintercept = as.Date(vertical_lines), col = "black")+
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(
-    x = "Date",
-    y = "% time attributed to activity",
-    title = paste("animals with VF collars")
-  )
-
-week1_2_3_animal_per_day_activity %>%
-  filter(group == "control") %>% 
-  ggplot(aes(x = date , y = value)) +
-  geom_col(aes(fill = activity), width = 0.7)+
-  theme_classic() +
-  facet_wrap(.~ deviceName)+
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(
-    x = "Date",
-    y = "% time attributed to activity",
-    title = paste("animals in the control")
-  )
-
-```
-
-
-**Per day plots**
-
-mean value of activity per day
-
-Do I need to convert this to mins first - check that its make sure its a 10min window
-
-
-```{r lying_standing for VF1 per day, echo=FALSE, message=FALSE, warning=FALSE}
-
-#print(week1_2_3_animal_per_day_activity)
-
-week1_2_3_animal_per_day_activity_1 <- week1_2_3_animal_per_day_activity %>% 
-  group_by(date, activity, group)%>%
-  summarise(activity_av_day = mean(value, na.rm = TRUE))
-
-
-week1_2_3_animal_per_day_activity_1 %>%
-    ggplot(aes(x = date , y = activity_av_day)) +
-  geom_col(aes(fill = activity), width = 0.7)+
-  theme_classic() +
-  facet_wrap(.~ group)+
-  geom_vline(xintercept = as.Date(vertical_lines), col = "black")+
-  theme(axis.text.x = element_text(angle = 90))+
-  labs(
-    x = "Date",
-    y = "% time attributed to activity",
-    title = paste("all animals")
-  )
-
+t_test_behaviour_first_days <- rbind(t.test_resting_first_days,t.test_grazing_first_days,t.test_moving_first_days)
+#t_test_behaviour
+t_test_behaviour_first_days %>% 
+  #mutate(across(where(is.numeric), ~ round(., digits = 10))) %>% 
+  formattable()
 
 ```
 
-I haven't done anything with awake time
-
-Also I have divided data up into grazing time 06:30-09:30 and I haven't done anything with this.
-
-I think this data needs to be explore more before running stats on it. 
 
 
 
-## Plot GPS logs
 
 
-```{r GPS data import, message=FALSE, warning=FALSE, include=FALSE}
+
+
+
+
+### 4. GPS plots
+
+Dana / Caroline: For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
+
+Jackie: Plot is below
+
+```{r write up GPS plots workings, message=FALSE, warning=FALSE, include=FALSE}
 
 #need to make df into spatial object for graphing and try clipping to paddock boundary
 long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
@@ -1811,38 +1956,6 @@ week1_2_3_sf_clip <-
       st_intersection(week1_2_3_sf_trans, long_plains)
     
 
-
-
-
-###  paddock bounadry
-
-#assign a coord ref epsg
-st_crs(long_plains) <- 28354
-
-#make this the epsg that will be used for all data
-the_crs <- st_crs(long_plains, asText = TRUE)
-
-### VF lines
-st_crs(long_plains_Vf) <- 28354
-
-
-```
-
-
-```{r GPS plot, echo=FALSE, message=FALSE, warning=FALSE}
-
-ggplot() +
-  geom_sf(data = week1_2_3_sf_clip, color = "black", fill = NA) 
-
-ggplot() +
-  geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
-  geom_sf(data = week1_2_3_sf_clip,alpha = 0.01) +
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "")
-
 fence1_GPS <- week1_2_3_sf_clip %>% 
   filter(fencesID_1 == "fence1")  
 fence2_GPS <- week1_2_3_sf_clip %>% 
@@ -1852,326 +1965,7 @@ fence3_GPS <- week1_2_3_sf_clip %>%
 fence3_deactive_GPS <- week1_2_3_sf_clip %>% 
   filter(fencesID_1 == "deactive_VF3") 
 
-ggplot() +
-  geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
-  geom_sf(data = fence1_GPS,alpha = 0.01) +
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "VF1 Days since start of VF")+
-  facet_wrap(.~ day_since_vf_start)
 
-ggplot() +
-  geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
-  geom_sf(data = fence2_GPS,alpha = 0.01) +
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "VF2 Days since start of VF")+
-  facet_wrap(.~ day_since_vf_start)
-
-ggplot() +
-  geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
-  geom_sf(data = fence3_GPS,alpha = 0.01) +
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "VF3 Days since start of VF")+
-  facet_wrap(.~ day_since_vf_start)
-
-ggplot() +
-  geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
-  geom_sf(data = fence3_deactive_GPS,alpha = 0.01) +
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Deactivation of VF3 Days since start of deactivation VF")+
-  facet_wrap(.~ day_since_vf_start)
-
-```
-
-Rick was after an additional plot.
-
-My notes are a big vague.
-
-Animal movement plot with background for VF2 all animals since the start.
-
-I haven't displayed the polygons in R - I have used armap for this.
-
-```{r GPS plot extra, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-
-# use data that is not projected and has long and lat clm - need to change the names a bit also filter the data
-
-test_week1_2_3 <- rename(week1_2_3, lat = gpsData.lat,
-                         lon = gpsData.lng   )
-
-All_animals_pre29th <- test_week1_2_3 %>% 
-  filter(date < as.Date("2020-10-29") )
-
-### Apparelty I have a google API key I have no idea when I did this but I found it here -
-#https://console.cloud.google.com/apis/credentials/key
-
-# And the below code will ensure R store it???
-# i have moved it to a text file in this folder
-
-
-# map <- get_googlemap(center = c(lon = 138.313047, lat = -34.317137),
-#                      maptype = c("satellite"),
-#                      zoom = 15) #smaller values zoom out bigger values zoom in
-# 
-# 
-# 
-# ggmap(map) + 
-#   geom_point(data = All_animals_pre29th, color = "blue", size = 0.5, alpha = 0.01) 
-  
-
-#Can I add the shapefile that have boundary - nope - its beyond me at this stage??
-
-
-# # long_plains_WGS <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound_WGS.shp")
-# # long_plains_Vf_WGS <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound_WGS.shp")
-# 
-# #write.csv(All_animals_pre29th, "All_animals_pre29th.csv") 
-
-
-```
-
-
-
-```{r animals pre 29th, echo=FALSE, message=FALSE, warning=FALSE}
-# All defaults
-include_graphics("W:/VF/LongPlain/Collar_data/Boundary_map with pre 29th animals.png")
-
-
-```
-
-## Areal image taken on the 3/11/2020
-
-```{r areal image, echo=FALSE, message=FALSE, warning=FALSE}
-# All defaults
-include_graphics("W:/VF/LongPlain/Aerial imagery/Aerial_image.png")
-
-
-```
-
-
-
-
-
-## Animal weights
-
-
-At the end of the trial.
-
-Weight gain expressed as:
-
-- % gain clm M
-
-- total gain (check the units ? grams) clm K
-
-- Daily weight gain clm L
-
- W:/VF/LongPlain/Animal_ID/Long Plains animal weight pre post Nov 2020 collar correction done.xlsx
-
-```{r animal_wts, echo=FALSE, message=FALSE, warning=FALSE}
-
-
-animal_wt <- read_excel("W:/VF/LongPlain/Animal_ID/Long Plains animal weight pre post Nov 2020 collar correction done.xlsx")
-
-#str(animal_wt)
-animal_wt <- dplyr::select(animal_wt,
-                           `Mob Name`,
-                           `Neckband Serial`,
-                           `Animal Name`,
-                           `Visual Tag ID`,
-                           `NLIS ID`,
-                           `Sex`,
-                           `Breed`,
-                           `% gain`,
-                           'Weight gain',
-                           Daily_weight_gain = `Daily weight gain  (18 days)`)
-
-
-animal_wt <-   filter(animal_wt, !is.na (`Animal Name`))
-#str(animal_wt)
-
-```
-
-Box plot mob
-
-
-```{r animal_wts box plots, echo=FALSE, message=FALSE, warning=FALSE}
-#str(animal_wt)
-
-
-
-### weight gain as %
-
-ggplot(animal_wt, aes(x= `Mob Name`, y= `% gain`)) + 
-  geom_boxplot(alpha=0.1)+
-  geom_point(colour = "blue", alpha = 0.1)+
-  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
-               width = .75, linetype = "dashed")+
-  theme_bw()+
-  #ylim(4,7)+
-  theme(axis.text=element_text(size=8),
-        axis.title=element_text(size=10))+
-  labs(x = "Mob",
-       y= "% weight gain",
-       title = "",
-       caption = "")
-```
-
-percentage weight gain
-
-```{r percen weight gain, echo=FALSE, message=FALSE, warning=FALSE}
-mean_animal_wt_perc <- animal_wt %>% 
-  group_by(`Mob Name`)%>% 
-  summarise(
-    mean_perc_gain = mean(`% gain`     , na.rm =TRUE))
-mean_animal_wt_perc
-
-```
-
-
-mean daily weight gain
-```{r mean daily weight gain, echo=FALSE, message=FALSE, warning=FALSE}
-
-mean_Daily_weight_gain <- animal_wt %>% 
-  group_by(`Mob Name`)%>% 
-  summarise(
-    mean_daily_wt_gain = mean(Daily_weight_gain     , na.rm =TRUE),
-    mean_daily_wt_gain_SD = sd(Daily_weight_gain,  na.rm = TRUE),
-    mean_daily_wt_gain_SE = mean_daily_wt_gain_SD / sqrt(n()))
-mean_Daily_weight_gain
-
-```
-
-
-```{r mean daily weight gain breed and sex, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-
-
-mean_Daily_weight_gain_breed <- animal_wt %>% 
-  group_by(`Mob Name`,Breed )%>% 
-  summarise(
-    mean_wt_gain = mean(`Weight gain` , na.rm =TRUE))
-mean_Daily_weight_gain_breed
-
-
-
-
-
-
-mean_Daily_weight_gain_sex <- animal_wt %>% 
-  group_by(`Mob Name`,Sex )%>% 
-  summarise(
-    mean_wt_gain = mean(`Weight gain` , na.rm =TRUE))
-mean_Daily_weight_gain_sex
-
-
-
-```
-
-
-
-
-
-## Animals weight gains stats
-
-No significant weight gain differences between Mob
-
-
-```{r animal wt gains  stats, echo=TRUE, message=FALSE, warning=FALSE}
-# animal_wt 
-
-
-#str(animal_wt)
-animal_wts_aov <- aov(`Weight gain` ~ `Mob Name` , data = animal_wt)
-
-summary(animal_wts_aov)
-
-
-# total weight gain for mob
-weight_gain <- animal_wt %>% 
-  group_by(`Mob Name`) %>% 
-  summarise(`total weight gain` = sum(`Weight gain`),
-            `total weight gain SD` = sd(`Weight gain`,  na.rm = TRUE),
-            `total weight gain SE` = `total weight gain SD` / sqrt(n()))
-
-
-weight_gain
-
-```
-
-
-```{r animal wt gains  per animals per day, echo=TRUE, message=FALSE, warning=FALSE}
-# animal_wt 
-
-
-
-
-
-# total weight gain for animal per day
-weight_gain_per_animals_per_day <-animal_wt %>% 
-  group_by(`Mob Name`) %>% 
-  summarise(`total weight gain` = sum(`Weight gain`),
-            `total weight gain SD` = sd(`Weight gain`,  na.rm = TRUE),
-            `total weight gain SE` = `total weight gain SD` / sqrt(n()))
-
-
-
-weight_gain
-
-```
-
-
-
-
-
-
-
-#### 2. body weight
-
-Dana / Caroline: We think body weight can just be reported in the text (no stats analyses, just the values). Mean (+SE) gain per group perhaps? Because we do only have the 1 vs 1 for our treatment/control, we don’t want to conclude too much. 
-
-Jackie: total weight gain after 18 days measure in kg??? not on the data entry sheet
-
-mean weight gain 
-
-control = 25.7 SE 2.53
-VF     =  22.4 SE 2.81
-
-```{r write up body , echo=TRUE, message=FALSE, warning=FALSE}
-
-
-body_wt_summary <- animal_wt %>% group_by(`Mob Name`) %>%
-  summarise(
-    Weight_gain_mean = mean(`Weight gain` ,  na.rm = TRUE),
-    Weight_gain_SD = sd(`Weight gain`,  na.rm = TRUE),
-    Weight_gain_SE = Weight_gain_SD / sqrt(
-      n()),
-      `% gain_mean` = mean(`% gain`,  na.rm = TRUE),
-      percent_gain_SD = sd(`% gain`,  na.rm = TRUE),
-      percent_gain_SE = percent_gain_SD / sqrt(n())
-    )
-body_wt_summary
-
-
-
-```
-
-
-#### 3. GPS plots
-
-Dana / Caroline: For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
-
-Jackie: Plot is below
-
-```{r write up GPS plots, echo=TRUE, message=FALSE, warning=FALSE}
 
 # pull out day 1 for each VF for the vf mob note that some clipping has been done.
 
@@ -2179,9 +1973,46 @@ fence1_day1 <-filter(fence1_GPS, day_since_vf_start == 1)
 fence2_day1 <-filter(fence2_GPS, day_since_vf_start == 1)
 fence3_day1 <-filter(fence3_GPS, day_since_vf_start == 1)
 fence3_deactivated_day1 <-filter(fence3_deactive_GPS, day_since_vf_start == 1)
+
+
+
+## just want the first 8 hours from each fence change
+min(fence1_day1$local_time)+hours(8)
+fence1_day1 <- fence1_day1 %>% filter(local_time <= ymd_hms("2020-10-21 23:07:00", tz= "Australia/Adelaide"))
+
+min(fence2_day1$local_time)+hours(8)
+fence2_day1 <- fence2_day1 %>% filter(local_time <= ymd_hms("2020-10-25 18:57:00", tz= "Australia/Adelaide"))
+
+min(fence3_day1$local_time)+hours(8)
+fence3_day1 <- fence3_day1 %>% filter(local_time <= ymd_hms("2020-10-30 16:07:00", tz= "Australia/Adelaide"))
+               
+min(fence3_deactivated_day1$local_time)+hours(8)
+fence3_deactivated_day1 <- fence3_deactivated_day1 %>% 
+  filter(local_time <= ymd_hms("2020-11-03 20:07:00", tz= "Australia/Adelaide"))
+
+
+
 fence1_3_deactice3_day1 <- rbind(fence1_day1, fence2_day1,fence3_day1, fence3_deactivated_day1 )
 
+fence1_day1 <-  fence1_day1 %>% 
+  mutate(day_since_trial_start = 1)
 
+fence2_day1 <-  fence2_day1 %>% 
+  mutate(day_since_trial_start = 5)
+
+fence3_day1 <-  fence1_day1 %>% 
+  mutate(day_since_trial_start = 10)
+
+fence3_deactivated_day1 <-  fence1_day1 %>% 
+  mutate(day_since_trial_start = 14)
+
+fence1_3_deactice3_day1 <-  fence1_3_deactice3_day1 %>% 
+  mutate(day_since_trial_start = case_when(
+    date == "2020-10-21" ~ 1,
+    date == "2020-10-25" ~ 5,
+    date == "2020-10-30" ~ 10,
+    date == "2020-11-03" ~ 14
+  ))
 
 # get the control mob only
 
@@ -2201,6 +2032,18 @@ week1_2_3_sf_clip_control_day1 <- week1_2_3_sf_clip_control %>% filter(date  == 
                                              date  == "2020-10-30" |
                                              date  == "2020-11-03")
 
+week1_2_3_sf_clip_control_day1 <- week1_2_3_sf_clip_control_day1 %>% 
+  mutate(day_since_trial_start = case_when(
+    date == "2020-10-21" ~ 1,
+    date == "2020-10-25" ~ 5,
+    date == "2020-10-30" ~ 10,
+    date == "2020-11-03" ~ 14
+  ))
+
+```
+#### Animal movement oo day 1 of each fence move
+
+```{r write up GPS plots image, echo=TRUE, message=FALSE, warning=FALSE}
 ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
   geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
@@ -2209,10 +2052,36 @@ ggplot() +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Day1 of VF")+
-  facet_wrap(.~ date)
+  #labs(title= "Day1 of VF")+
+  facet_wrap(.~ day_since_trial_start)
+
 ```
 
+
+
+For each above plot Dana would like to know how what is the time window.
+```{r write up GPS plots time period, echo=TRUE, message=FALSE, warning=FALSE}
+fence1_3_deactice3_day1_time <- fence1_3_deactice3_day1 %>%
+  dplyr::select(fencesID_1,local_time ) %>% 
+  group_by(fencesID_1) %>% 
+  summarise(min_local_time = min(local_time),
+            max_local_time = max(local_time))
+
+
+fence1_3_deactice3_day1_time <- as.data.frame(fence1_3_deactice3_day1_time)
+
+fence1_3_deactice3_day1_time <- as.data.frame(fence1_3_deactice3_day1_time)
+fence1_3_deactice3_day1_time <-fence1_3_deactice3_day1_time %>% dplyr::select(fencesID_1,min_local_time, max_local_time )  %>% 
+  arrange(min_local_time)
+
+
+
+fence1_3_deactice3_day1_time <- fence1_3_deactice3_day1_time %>% 
+  mutate(difference_in_time = max_local_time - min_local_time)
+         
+fence1_3_deactice3_day1_time
+
+```
 
 Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area?
 
