@@ -1890,14 +1890,14 @@ first_days_behaviour_test_2 <- first_days_behaviour_test %>%
   filter(date > as.Date("2020-10-23"))%>% 
   mutate(time_period = "exclude_first_3_days")
 
-min(first_days_behaviour_test_1$date)                
-max(first_days_behaviour_test_1$date)
-
-min(first_days_behaviour_test_2$date)                
-max(first_days_behaviour_test_2$date)               
+# min(first_days_behaviour_test_1$date)                
+# max(first_days_behaviour_test_1$date)
+# 
+# min(first_days_behaviour_test_2$date)                
+# max(first_days_behaviour_test_2$date)               
 
 first_days_behaviour_test_1_2 <- rbind(first_days_behaviour_test_1,first_days_behaviour_test_2 )
-str(first_days_behaviour_test_1_2)
+#str(first_days_behaviour_test_1_2)
 first_days_behaviour_test_1_2_VF <- first_days_behaviour_test_1_2 %>% 
   filter(paddock == "VF")
 
@@ -1931,15 +1931,24 @@ t_test_behaviour_first_days %>%
 
 ### 4. GPS plots
 
-Dana / Caroline: For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
+Dana / Caroline: For GPS Plots. Could you plot the movement of each group on the first day of fence activation/deactivation. 
 
-Jackie: Plot is below
+These would be plots similar to the ones you have done ‘Days since start of VF’ in the document but would only include day 1 of each activation/deactivation and would have the control group plotted simultaneously. 
+
+Thus, 4 paddock map plots in total. (Let me know if that is unclear and/or if Rick has something different in mind). 
+
+Is it also possible to calculate the time from fence change until the first animal entered the new, previously excluded area? 
+
+That way we could state ‘on average, once a fence had shifted position/was deactivated, it took the animals 2 (?) hours to move into the new area’. 
+
+
 
 ```{r write up GPS plots workings, message=FALSE, warning=FALSE, include=FALSE}
 
 #need to make df into spatial object for graphing and try clipping to paddock boundary
 long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
 long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
+long_plains_Vf_area <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_area_bound.shp")
 
 #str(week1_2_3)
 
@@ -2041,12 +2050,21 @@ week1_2_3_sf_clip_control_day1 <- week1_2_3_sf_clip_control_day1 %>%
   ))
 
 ```
-#### Animal movement oo day 1 of each fence move
+
+#### Animal movement day 1 of each fence move for 8 hours
 
 ```{r write up GPS plots image, echo=TRUE, message=FALSE, warning=FALSE}
+long_plains_Vf_area <- long_plains_Vf_area %>% 
+  mutate(day_since_trial_start = case_when(
+    VF_Agersen == "VF1" ~ 1,
+    VF_Agersen == "VF1 and 2" ~ 5,
+    VF_Agersen == "VF 1, 2 and 3" ~ 10,
+    VF_Agersen == "VF 1, 2, 3 and 4" ~ 14
+  ))
+
 ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = long_plains_Vf_area, color = "black", fill = NA) +
   geom_sf(data = fence1_3_deactice3_day1 ,alpha = 0.01) +
   geom_sf(data = week1_2_3_sf_clip_control_day1 ,colour = "skyblue4", alpha = 0.01) +
   theme_bw()+
@@ -2060,6 +2078,7 @@ ggplot() +
 
 
 For each above plot Dana would like to know how what is the time window.
+
 ```{r write up GPS plots time period, echo=TRUE, message=FALSE, warning=FALSE}
 fence1_3_deactice3_day1_time <- fence1_3_deactice3_day1 %>%
   dplyr::select(fencesID_1,local_time ) %>% 
@@ -2087,11 +2106,16 @@ Is it also possible to calculate the time from fence change until the first anim
 
 Yeah this should be easy!
 A couple of thing make it more challenging:
+
 1. The area "VF 4" the very far west of the paddock has no VF active.
+
 2. Agersens collect data normally in 10 min intervals.
+
 3. the GPS is data is a snap shot of where the animal is in this 10 min window.
+
 4. Tanusri has suggested:
 If the values in “fenceID” column as blank, this means there is no active virtual fence for that neckband yet. Therefore, if you are performing some analysis related to virtual fencing, you can ignore those rows with blank fenceIDs." This makes it difficult to use the data for VF area 4.
+
 5. There is a lag between when the fence is moved approx 10mins
 
 There are a couple of ways to do this and nothing is perfect.
@@ -2099,22 +2123,24 @@ I have worked out when the VF has become active and for fence 3 when it is activ
 Using this date time pulled out a window of time close to the fence move.
 Then I have selected data in the new VF area only and reported the smallest time value.
 
-VF Fence 2 -25th
+- VF Fence 2 -25th
+
 From activation to animals moving to new VF area (VF2 area) took approx 6hrs
 
-VF Fence 3 - 30th
-From activation to animals moving to new VF area (VF3 area) took approx 15 sections
+- VF Fence 3 - 30th
+
+From activation to animals moving to new VF area (VF3 area) took approx 15 sec
 This doesn't seem correct.
 I tried a different approach and got the same ans
 When you look at the plots it appears an animals was already there!
 
-Deactivation VF Fence 3 - 3rd
+- Deactivation VF Fence 3 - 3rd
 From deactivation to animals moving to new VF area (VF4 area) took approx 7 hours
 
 
+Jackie: heaps of plots not displayed (code is still in document).
 
-
-```{r write up GPS plots first animal  25th, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r write up GPS plots first animal  25th, message=FALSE, warning=FALSE, include=FALSE}
 
 # a. Filter VF mob GPS data for the 25th only (but use the clipped dataset week1_2_3_sf_trans)
 # b. clip 25VFmob to new VF boundary (long_plains_Vf2) 25VFmob_VF2 
@@ -2516,7 +2542,7 @@ animal_move_25_03_30 <- rbind(animal_move_25_03, animal_move_30)
 
 ```
 
-```{r write up GPS plots first animal  results, echo=FALSE, message=FALSE, warning=FALSE}
+```{r write up GPS plots first animal  results, message=FALSE, warning=FALSE, include=FALSE}
 #Summary of times animals move into new grazing area
 
 animal_move_25_03_30
@@ -2579,7 +2605,48 @@ ggplot() +
 ```
 
 
+```{r write up GPS plots first animal  results table, echo=FALSE, message=FALSE, warning=FALSE}
 
+animal_move_25_03_30 <- animal_move_25_03_30 %>% mutate(VF = case_when(
+  local_time == "2020-10-25 10:57:00" ~ "VF2",
+  local_time == "2020-10-25 16:27:00" ~ "VF2",
+  
+  local_time == "2020-10-30 08:07:00" ~ "VF3",
+  local_time == "2020-10-30 08:07:15" ~ "VF3",
+  
+  local_time == "2020-11-03 11:57:16" ~ "VF4",
+  local_time == "2020-11-03 16:07:01" ~ "VF4",
+  
+))
+
+animal_move_25_03_30 <- animal_move_25_03_30 %>% mutate(start_animal = case_when(
+  local_time == "2020-10-25 10:57:00" ~ "start",
+  local_time == "2020-10-25 16:27:00" ~ "animal_entered",
+  
+  local_time == "2020-10-30 08:07:00" ~ "start",
+  local_time == "2020-10-30 08:07:15" ~ "animal_entered",
+  
+  local_time == "2020-11-03 11:57:16" ~ "start",
+  local_time == "2020-11-03 16:07:01" ~ "animal_entered",
+  
+))
+
+
+animal_move_25_03_30_wide <- animal_move_25_03_30 %>% 
+  pivot_wider(names_from = start_animal, 
+              values_from = local_time)
+
+animal_move_25_03_30_wide <- animal_move_25_03_30_wide %>% 
+  fill(start )%>% 
+  filter(!is.na(animal_entered)) %>% 
+  dplyr::select(VF, start, animal_entered) %>% 
+  mutate(time_entered_hours = animal_entered - start) %>% 
+  arrange(start)
+   
+animal_move_25_03_30_wide$time_entered_hours <- as.numeric(animal_move_25_03_30_wide$time_entered_hours, units = "hours")
+
+animal_move_25_03_30_wide 
+```
 
 #### 4. Resting Plots
 
@@ -2766,44 +2833,52 @@ week1_2_3_rest_dis_clip_AreaVF1_2_3_4 <-
 
 resting_location_VF_area1 <- ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf, day_since_trial_start == 1),
+          color = "black", fill = NA) +
   geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1,!is.na(resting_threshold)),
           alpha = 0.01) +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Resting data only VF area 1")
+  labs(title= "VF area 1")
+
 
 resting_location_VF_area1_2 <-ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf, day_since_trial_start == 5),
+          color = "black", fill = NA) +
   geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1_2,!is.na(resting_threshold)),
           alpha = 0.01) +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Resting data only VF area 1 and 2")
+  labs(title= "VF 2")
+
 
 resting_location_VF_area1_2_3 <-ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf, day_since_trial_start == 10),
+          color = "black", fill = NA) +
   geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1_2_3,!is.na(resting_threshold)),
           alpha = 0.01) +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Resting data only VF area 1, 2 and 3")
+  labs(title= "VF area 3")
+
 
 resting_location_VF_area1_2_3_4 <-ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = long_plains_Vf, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf, day_since_trial_start == 14),
+          color = "black", fill = NA) +
   #geom_sf(data = long_plains_Area_Vf1_VF2_Vf3_Vf4, color = "green", fill = NA) +
   geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1_2_3_4,!is.na(resting_threshold)),
           alpha = 0.01) +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "Resting data only VF area 1, 2, 3 and 4")
+  labs(title= "VF 4")
+
 
 
 
