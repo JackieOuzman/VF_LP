@@ -2852,7 +2852,7 @@ resting_location_VF_area1_2 <-ggplot() +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "VF 2")
+  labs(title= "VF area 2")
 
 
 resting_location_VF_area1_2_3 <-ggplot() +
@@ -2877,7 +2877,7 @@ resting_location_VF_area1_2_3_4 <-ggplot() +
   theme_bw()+
   theme(legend.position = "none",
         axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "VF 4")
+  labs(title= "VF area 4")
 
 
 
