@@ -2707,7 +2707,7 @@ week1_2_3_rest <- week1_2_3_rest %>%
 #   arrange(local_time)
 
 #change the local time to correct format
-week1_2_3_rest$local_time <- as.POSIXct(week1_2_3_rest$local_time, format = "%Y-%m-%d %H:%M:%S", tz= "Australia/Adelaide")
+week1_2_3_rest$local_time <- as.POSIXct(week1_2_3_rest$local_time, origin="1970-01-01")
 
 
 #round the local time to the closest 10 mins
@@ -2723,8 +2723,8 @@ min(week1_2_3_rest$round_local_time)
 max(week1_2_3_rest$round_local_time)
 
 time_step_df <- data.frame( round_local_time =
-seq(as.POSIXct(min(week1_2_3_rest$round_local_time), format = "%Y-%m-%d %H:%M:%S", tz= "Australia/Adelaide"), #start time
-    as.POSIXct(max(week1_2_3_rest$round_local_time), format = "%Y-%m-%d %H:%M:%S", tz= "Australia/Adelaide"), #end time
+seq(as.POSIXct(min(week1_2_3_rest$round_local_time)), #start time
+    as.POSIXct(max(week1_2_3_rest$round_local_time)), #end time
     dminutes(10)) #inteval 
 )
 
@@ -2907,7 +2907,7 @@ week1_2_3_rest_control <- week1_2_3_rest_control %>%
 
 
 #change the local time to correct format
-week1_2_3_rest_control$local_time <- as.POSIXct(week1_2_3_rest_control$local_time, format = "%Y-%m-%d %H:%M:%S", tz= "Australia/Adelaide")
+week1_2_3_rest_control$local_time <- as.POSIXct(week1_2_3_rest_control$local_time, origin="1970-01-01")
 
 
 #round the local time to the closest 10 mins
@@ -2923,8 +2923,8 @@ min(week1_2_3_rest_control$round_local_time)
 max(week1_2_3_rest_control$round_local_time)
 
 time_step_df_control <- data.frame( round_local_time =
-                              seq(as.POSIXct(min(week1_2_3_rest$round_local_time, format = "%Y-%m-%d %H:%M:%S", tz= "Australia/Adelaide")), #start time
-                                  as.POSIXct(max(week1_2_3_rest$round_local_time, format = "%Y-%m-%d %H:%M:%S", tz= "Australia/Adelaide")), #end time
+                              seq(as.POSIXct(min(week1_2_3_rest$round_local_time)), #start time
+                                  as.POSIXct(max(week1_2_3_rest$round_local_time)), #end time
                                   dminutes(10)) #inteval 
 )
 
@@ -2980,7 +2980,7 @@ week1_2_3_rest_dis_control_sf_trans_clip <-
 
 
 
-resting_location_VF_area1_control
+
 
 ### what are is the local time for the matching VF data match the time frames for each VF area
 
