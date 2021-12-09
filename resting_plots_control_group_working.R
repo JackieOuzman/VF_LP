@@ -26,10 +26,7 @@ week1_2_3_rest_control <- week1_2_3_rest_control %>%
     day_since_vf_start,
     time
   )
-# ## work with a small subset of data one animal one day.
-# rest_2020_10_21_9370004 <- week1_2_3_rest %>%
-#   filter(date == "2020-10-21" & deviceName == "9370004") %>% 
-#   arrange(local_time)
+
 
 #change the local time to correct format
 week1_2_3_rest_control$local_time <- as.POSIXct(week1_2_3_rest_control$local_time)
@@ -101,19 +98,67 @@ week1_2_3_rest_dis_control_sf_trans_clip <-
 
 
 
-resting_location_VF_area1_control <- ggplot() +
-  geom_sf(data = long_plains, color = "black", fill = NA) +
-  geom_sf(data = filter(long_plains_Vf, day_since_trial_start == 1),
-          color = "black", fill = NA) +
-  geom_sf(data = filter(week1_2_3_rest_dis_control_sf_trans_clip,!is.na(resting_threshold)),
-          alpha = 0.01) +
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
-  labs(title= "VF area 1")
+
 
 
 
 resting_location_VF_area1_control
 
+### what are is the local time for the matching VF data match the time frames for each VF area
 
+### should also be clipped to VF bounary time
+
+check2 <- week1_2_3 %>% group_by( group, fencesID_1) %>% 
+  summarise(min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+            max_local_time = ymd_hms(max(local_time), tz= "Australia/Adelaide")) %>% 
+  arrange(min_local_time)
+
+#check2
+
+control_time_clip_AreaVF1 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-21 15:07:00"), #lower value
+    ymd_hms("2020-10-25 10:47:16")  #higher value
+  )) 
+
+
+control_time_clip_AreaVF2 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-25 10:57:00"), #lower value
+    ymd_hms("2020-10-30 07:59:37")  #higher value
+  )) 
+
+control_time_clip_AreaVF3 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-30 08:07:00"), #lower value
+    ymd_hms("2020-11-03 11:57:16")  #higher value
+  )) 
+
+control_time_clip_AreaVF4 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-11-03 12:07:00"), #lower value
+    ymd_hms("2020-11-09 08:57:16")  #higher value
+  )) 
+
+
+
+#### chcek plot
+
+resting_location_VF_area1_control <- ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf_area, day_since_trial_start == 1),
+          color = "black", fill = NA) +
+  geom_sf(data = filter(control_time_clip_AreaVF1,!is.na(resting_threshold)),
+          alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF area 1")
