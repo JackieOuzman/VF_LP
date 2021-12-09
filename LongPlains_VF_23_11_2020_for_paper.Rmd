@@ -1588,7 +1588,7 @@ the discussion, we anticipate if there are substantial differences, it would be 
 
 Jackie: 
 - I have cal the average time spent resting, moving, grazing per animal per day (mean per animal per day).
-- Then using this dataset I have cal the mean, sd ,se for each activity and group (the mean across all animals for whole trial).
+- Then using this dataset I have cal the mean, SD ,SE for each activity and group (the mean across all animals for whole trial).
 
 
 I assume you still want VF and control mob plotted separately?
@@ -1790,11 +1790,11 @@ week1_2_3_activity %>%
 
 ```
 
-#### Run an t-test on behaviours?
+#### Run an t-test on behaviors?
 
-- Are open graze animals doing more resting than the VF animlas?
-- Are open graze animals doing more grazing than the VF animlas?
-- Are open graze animals doing more moving than the VF animlas?
+- Are open graze animals doing more resting than the VF animals?
+- Are open graze animals doing more grazing than the VF animals?
+- Are open graze animals doing more moving than the VF animals?
 
 http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/76-add-p-values-and-significance-levels-to-ggplots/
 
@@ -1839,7 +1839,7 @@ t_test_behaviour %>%
 ```
 
 
-#### Behaviours on first 3 days vs the rest of the trial.
+#### Behaviors on first 3 days vs the rest of the trial.
 
 First three days are 21/10 to 23/10
 Excluding the first three days are 24/10 to 09/11.
@@ -2665,6 +2665,14 @@ Jackie: One approach would be to produce a heat map of where the animals rested.
 2. create a new dataset which has a regular time interval (not sure how frequent this would be perhaps every 15mins?)
 2.plot this onto a grid and count the observation in the grid for all animals in the mob on each day.
 
+
+### refer to R markdown test error 
+The below code won't run.
+I can get all working in another document.
+Very frustrating!
+
+
+
 ```{r write resting spots working, message=FALSE, warning=FALSE, include=FALSE}
 
 
@@ -2673,7 +2681,7 @@ Jackie: One approach would be to produce a heat map of where the animals rested.
 write.csv(week1_2_3, "W:/VF/LongPlain/R_scripts_etc/VF_LP/resting_spots_for_paper/week1_2_3_start.csv")
 ```
 
-```{r write up resting spots working_version1, message=FALSE, warning=FALSE, include=FALSE}
+```{r write up resting spots working_version1, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
 #step1 one pull out the all the resting data only.
 
@@ -2875,7 +2883,7 @@ week1_2_3_rest_dis_clip_AreaVF1_2_3_4 <-
 ```
 
 
-```{r write resting spots working control animals, message=FALSE, warning=FALSE, include=FALSE}
+```{r write resting spots working control animals, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 #step1 one pull out the all the resting data only.
 
 week1_2_3 <- read_csv("W:/VF/LongPlain/R_scripts_etc/VF_LP/resting_spots_for_paper/week1_2_3_start.csv", 
@@ -3028,7 +3036,7 @@ control_time_clip_AreaVF4 <-
 ```
 
 
-```{r write up resting spots results_version1 making plots, echo=FALSE, message=FALSE, warning=FALSE}
+```{r write up resting spots results_version1 making plots, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 resting_location_VF_area1 <- ggplot() +
   geom_sf(data = long_plains, color = "black", fill = NA) +
   geom_sf(data = filter(long_plains_Vf_area, day_since_trial_start == 1),
@@ -3087,7 +3095,7 @@ resting_location_VF_area1_2_3_4 <-ggplot() +
 ```
 
 
-```{r write up resting spots results_version1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r write up resting spots results_version1, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
 library("cowplot")
 resting_location_by_area <- plot_grid(resting_location_VF_area1, 
