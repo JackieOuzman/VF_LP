@@ -1,0 +1,515 @@
+---
+title: "test_error"
+author: "Jackie Ouzman"
+date: "09/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r lib, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(tidyverse)
+library(readr)
+library(lubridate)
+library(DT)
+library(sp)
+
+
+library(rgdal)
+library(sf)
+
+#install.packages("plotKML")
+library(plotKML)
+library(knitr)
+library(png)
+
+library(readxl)
+
+
+library(ggmap)
+library(maps)
+library(mapdata)
+
+library(raster)
+library(formattable)
+#library(hms) Add these before I use them?
+#library(plyr)
+library(ggpubr)
+
+```
+
+
+```{r test1, message=FALSE, warning=FALSE, include=FALSE}
+long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
+long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
+long_plains_Vf_area <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_area_bound.shp")
+
+long_plains_Vf_area <- long_plains_Vf_area %>% 
+  mutate(day_since_trial_start = case_when(
+    VF_Agersen == "VF1" ~ 1,
+    VF_Agersen == "VF1 and 2" ~ 5,
+    VF_Agersen == "VF 1, 2 and 3" ~ 10,
+    VF_Agersen == "VF 1, 2, 3 and 4" ~ 14
+  ))
+```
+
+
+
+#### 4. Resting Plots
+
+Dana / Caroline: Only additional analysis we thought could be interesting would be to plot where the animals rest in the paddock. 
+
+Since resting is stationary, the intermittent GPS sampling should be less of an issue. 
+
+We were interested if the changing fences had any impact on where the animals preferred to rest relative to the control . 
+
+I.e. did their resting spot change as the paddock inclusion area got larger in the VF group? 
+
+We think this would be interesting and new from our perspective, but if it is going to be days and days to get that analysis done then it probably is not worth the time. 
+
+Jackie: One approach would be to produce a heat map of where the animals rested.
+1.extract all of the resting data from the dataset.
+2. create a new dataset which has a regular time interval (not sure how frequent this would be perhaps every 15mins?)
+2.plot this onto a grid and count the observation in the grid for all animals in the mob on each day.
+
+```{r write resting spots working, message=FALSE, warning=FALSE, include=FALSE}
+
+
+#good place to start would be  
+
+#write.csv(week1_2_3, "W:/VF/LongPlain/R_scripts_etc/VF_LP/resting_spots_for_paper/week1_2_3_start.csv")
+
+
+```
+
+```{r write up resting spots working_version1, message=FALSE, warning=FALSE, include=FALSE}
+
+#step1 one pull out the all the resting data only.
+
+week1_2_3 <- read_csv("W:/VF/LongPlain/R_scripts_etc/VF_LP/resting_spots_for_paper/week1_2_3_start.csv", 
+         col_types = cols(GMT = col_datetime(format = "%Y-%m-%d %H:%M:%S"), 
+                          date = col_date(format = "%Y-%m-%d"), 
+                          local_time = col_datetime(format = "%Y-%m-%d %H:%M:%S"), 
+                          timeOfEvent = col_datetime(format = "%Y-%m-%d %H:%M:%S")))
+week1_2_3 <- week1_2_3 %>%
+  mutate(time = hms::as_hms(local_time))
+#only select the resting data
+week1_2_3_rest <- week1_2_3 %>%  filter(!is.na(week1_2_3$resting.))
+week1_2_3_rest <- week1_2_3 %>%  filter(group == "VF" )
+
+week1_2_3_rest <- week1_2_3_rest %>%
+  dplyr::select(
+    deviceName,
+    gpsData.lat,
+    gpsData.lng,
+    fencesID,
+    fencesID_1,
+    resting = resting.,
+    local_time,
+    date,
+    day_since_vf_start,
+    time
+  )
+# ## work with a small subset of data one animal one day.
+# rest_2020_10_21_9370004 <- week1_2_3_rest %>%
+#   filter(date == "2020-10-21" & deviceName == "9370004") %>% 
+#   arrange(local_time)
+
+#change the local time to correct format
+week1_2_3_rest$local_time <- as.POSIXct(week1_2_3_rest$local_time, origin="1970-01-01")
+
+
+#round the local time to the closest 10 mins
+
+week1_2_3_rest <- week1_2_3_rest %>%
+  mutate(hours = substr(time, 1, 2),
+         mins = substr(time, 4, 5),
+         round_local_time = lubridate::round_date(local_time, "10 minutes") )
+
+
+# create a df that has regular time step No sure I need this bit??
+min(week1_2_3_rest$round_local_time)
+max(week1_2_3_rest$round_local_time)
+
+time_step_df <- data.frame( round_local_time =
+seq(as.POSIXct(min(week1_2_3_rest$round_local_time)), #start time
+    as.POSIXct(max(week1_2_3_rest$round_local_time)), #end time
+    dminutes(10)) #inteval 
+)
+
+#my time step may not match the observered data how should I make it join?
+#when there are multiple entries for one rounded value I could:
+#1. take the unique value or take a average.
+# I will try taking a unique value and see what happens
+
+#only keep unique round time values for each animal
+week1_2_3_rest_dis <- week1_2_3_rest %>% 
+  group_by(deviceName) %>% 
+    distinct(round_local_time, .keep_all= TRUE)
+
+  
+  
+# unique(week1_2_3_rest_dis$deviceName)
+# str(time_step_df)
+# #if I need this bit turn it into a loop
+# time_step_by_9370004 <- time_step_df %>% 
+#   mutate(round_local_time_device = 
+#            paste0(round_local_time, "_", "9370004"))
+# time_step_by_9370088 <- time_step_df %>% 
+#   mutate(round_local_time_device = 
+#            paste0(round_local_time, "_", "9370088"))
+
+#join my time step to the observed data 
+#(this should ensure that if I have missing data I still have a placeholder)
+#rest_template_one_animal <- left_join(time_step_df,week1_2_3_rest_dis) 
+
+
+ 
+ week1_2_3_rest_dis <- week1_2_3_rest_dis %>% 
+  dplyr::select(round_local_time, 
+                deviceName,
+                gpsData.lat,
+                gpsData.lng, 
+                resting,
+                fencesID_1,
+                day_since_vf_start)
+                
+
+ week1_2_3_rest_dis <- week1_2_3_rest_dis %>% 
+  mutate(resting_threshold = case_when(
+    resting >= 20 ~ 1,
+    TRUE ~ NA_real_))
+
+
+#need to make df into spatial object for graphing and try clipping to paddock boundary
+# long_plains <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlain_GDA_internal_bound.shp")
+# long_plains_Vf <- st_read("W:/VF/LongPlain/LP Blk Bound/LongPlainVF_bound.shp")
+
+#str(week1_2_3)
+
+
+week1_2_3_rest_dis_sf <-
+  st_as_sf(week1_2_3_rest_dis,
+           coords = c("gpsData.lng", "gpsData.lat"),
+           crs = 4326,
+           agr = "constant")
+
+week1_2_3_rest_dis_sf_trans <-
+  st_transform(week1_2_3_rest_dis_sf, crs = 28354)
+
+week1_2_3_rest_dis_sf_trans_clip <-
+  st_intersection(week1_2_3_rest_dis_sf_trans, long_plains)    
+###  paddock bounadry
+#assign a coord ref epsg
+# st_crs(long_plains) <- 28354
+# 
+# #make this the epsg that will be used for all data
+# the_crs <- st_crs(long_plains, asText = TRUE)
+# 
+# ### VF lines
+# st_crs(long_plains_Vf) <- 28354
+
+
+
+
+### Clip the data for VR area.
+long_plains_Area_Vf1 <- long_plains_Vf %>% 
+  filter(VF_Agersen == "VF1")
+
+long_plains_Area_Vf1_VF2 <- long_plains_Vf %>% 
+  filter(VF_Agersen == "VF2" | VF_Agersen == "VF1") 
+
+long_plains_Area_Vf1_VF2_Vf3 <- long_plains_Vf %>% 
+  filter( VF_Agersen == "VF3" |VF_Agersen == "VF2" | VF_Agersen == "VF1")  
+
+long_plains_Area_Vf1_VF2_Vf3_Vf4 <- long_plains_Vf %>% 
+  filter( VF_Agersen == "VF4"|VF_Agersen == "VF3" |VF_Agersen == "VF2" | VF_Agersen == "VF1")   
+
+
+### should also be clipped to VF bounary
+
+week1_2_3_rest_dis_clip_AreaVF1 <-
+  st_intersection(week1_2_3_rest_dis_sf_trans_clip, long_plains_Area_Vf1)   
+week1_2_3_rest_dis_clip_AreaVF1_2 <-
+  st_intersection(week1_2_3_rest_dis_sf_trans_clip, long_plains_Area_Vf1_VF2) 
+week1_2_3_rest_dis_clip_AreaVF1_2_3 <-
+  st_intersection(week1_2_3_rest_dis_sf_trans_clip, long_plains_Area_Vf1_VF2_Vf3) 
+week1_2_3_rest_dis_clip_AreaVF1_2_3_4 <-
+  st_intersection(week1_2_3_rest_dis_sf_trans_clip, long_plains_Area_Vf1_VF2_Vf3_Vf4) 
+
+
+### should also be clipped to VF bounary time
+
+check2 <- week1_2_3 %>% group_by( group, fencesID_1) %>% 
+  summarise(min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+            max_local_time = ymd_hms(max(local_time), tz= "Australia/Adelaide")) %>% 
+  arrange(min_local_time)
+
+#check2
+
+week1_2_3_rest_dis_clip_AreaVF1 <-
+  week1_2_3_rest_dis_clip_AreaVF1 %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-21 15:07:00"), #lower value
+    ymd_hms("2020-10-25 10:47:16")  #higher value
+  )) 
+
+
+week1_2_3_rest_dis_clip_AreaVF1_2 <-
+  week1_2_3_rest_dis_clip_AreaVF1_2 %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-25 10:57:00"), #lower value
+    ymd_hms("2020-10-30 07:59:37")  #higher value
+  )) 
+
+week1_2_3_rest_dis_clip_AreaVF1_2_3 <-
+  week1_2_3_rest_dis_clip_AreaVF1_2_3 %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-30 08:07:00"), #lower value
+    ymd_hms("2020-11-03 11:57:16")  #higher value
+  )) 
+
+week1_2_3_rest_dis_clip_AreaVF1_2_3_4 <-
+  week1_2_3_rest_dis_clip_AreaVF1_2_3_4 %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-11-03 12:07:00"), #lower value
+    ymd_hms("2020-11-09 08:57:16")  #higher value
+  )) 
+
+
+```
+
+```{r write resting spots working control animals, message=FALSE, warning=FALSE, include=FALSE}
+#step1 one pull out the all the resting data only.
+
+week1_2_3 <- read_csv("W:/VF/LongPlain/R_scripts_etc/VF_LP/resting_spots_for_paper/week1_2_3_start.csv", 
+                      col_types = cols(GMT = col_datetime(format = "%Y-%m-%d %H:%M:%S"), 
+                                       date = col_date(format = "%Y-%m-%d"), 
+                                       local_time = col_datetime(format = "%Y-%m-%d %H:%M:%S"), 
+                                       timeOfEvent = col_datetime(format = "%Y-%m-%d %H:%M:%S")))
+week1_2_3 <- week1_2_3 %>%
+  mutate(time = hms::as_hms(local_time))
+#only select the resting data
+week1_2_3_rest <- week1_2_3 %>%  filter(!is.na(week1_2_3$resting.))
+unique(week1_2_3_rest$group)
+
+week1_2_3_rest_control <- week1_2_3 %>%  filter(group == "control" )
+
+week1_2_3_rest_control <- week1_2_3_rest_control %>%
+  dplyr::select(
+    deviceName,
+    gpsData.lat,
+    gpsData.lng,
+    fencesID,
+    fencesID_1,
+    resting = resting.,
+    local_time,
+    date,
+    day_since_vf_start,
+    time
+  )
+
+
+#change the local time to correct format
+week1_2_3_rest_control$local_time <- as.POSIXct(week1_2_3_rest_control$local_time, origin="1970-01-01")
+
+
+#round the local time to the closest 10 mins
+
+week1_2_3_rest_control <- week1_2_3_rest_control %>%
+  mutate(hours = substr(time, 1, 2),
+         mins = substr(time, 4, 5),
+         round_local_time = lubridate::round_date(local_time, "10 minutes") )
+
+
+# create a df that has regular time step No sure I need this bit??
+min(week1_2_3_rest_control$round_local_time)
+max(week1_2_3_rest_control$round_local_time)
+
+time_step_df_control <- data.frame( round_local_time =
+                              seq(as.POSIXct(min(week1_2_3_rest$round_local_time, origin="1970-01-01")), #start time
+                                  as.POSIXct(max(week1_2_3_rest$round_local_time, origin="1970-01-01")), #end time
+                                  dminutes(10)) #inteval 
+)
+
+#my time step may not match the observered data how should I make it join?
+#when there are multiple entries for one rounded value I could:
+#1. take the unique value or take a average.
+# I will try taking a unique value and see what happens
+
+#only keep unique round time values for each animal
+week1_2_3_rest_dis_control <- week1_2_3_rest_control %>% 
+  group_by(deviceName) %>% 
+  distinct(round_local_time, .keep_all= TRUE)
+
+
+
+
+
+
+week1_2_3_rest_dis_control <- week1_2_3_rest_dis_control %>% 
+  dplyr::select(round_local_time, 
+                deviceName,
+                gpsData.lat,
+                gpsData.lng, 
+                resting,
+                fencesID_1,
+                day_since_vf_start)
+
+
+week1_2_3_rest_dis_control <- week1_2_3_rest_dis_control %>% 
+  mutate(resting_threshold = case_when(
+    resting >= 20 ~ 1,
+    TRUE ~ NA_real_))
+
+
+
+
+
+week1_2_3_rest_dis_control_sf <-
+  st_as_sf(week1_2_3_rest_dis_control,
+           coords = c("gpsData.lng", "gpsData.lat"),
+           crs = 4326,
+           agr = "constant")
+
+week1_2_3_rest_dis_control_sf_trans <-
+  st_transform(week1_2_3_rest_dis_control_sf, crs = 28354)
+
+week1_2_3_rest_dis_control_sf_trans_clip <-
+  st_intersection(week1_2_3_rest_dis_control_sf_trans, long_plains)    
+
+
+
+
+
+
+
+
+
+### what are is the local time for the matching VF data match the time frames for each VF area
+
+### should also be clipped to VF bounary time
+
+# check2 <- week1_2_3 %>% group_by( group, fencesID_1) %>% 
+#   summarise(min_local_time = ymd_hms(min(local_time), tz= "Australia/Adelaide"),
+#             max_local_time = ymd_hms(max(local_time), tz= "Australia/Adelaide")) %>% 
+#   arrange(min_local_time)
+# 
+# #check2
+
+control_time_clip_AreaVF1 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-21 15:07:00"), #lower value
+    ymd_hms("2020-10-25 10:47:16")  #higher value
+  )) 
+
+
+control_time_clip_AreaVF2 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-25 10:57:00"), #lower value
+    ymd_hms("2020-10-30 07:59:37")  #higher value
+  )) 
+
+control_time_clip_AreaVF3 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-10-30 08:07:00"), #lower value
+    ymd_hms("2020-11-03 11:57:16")  #higher value
+  )) 
+
+control_time_clip_AreaVF4 <-
+  week1_2_3_rest_dis_control_sf_trans_clip %>%
+  filter(between(
+    ymd_hms(round_local_time),
+    ymd_hms("2020-11-03 12:07:00"), #lower value
+    ymd_hms("2020-11-09 08:57:16")  #higher value
+  )) 
+```
+
+
+```{r write up resting spots results_version1 making plots, echo=FALSE, message=FALSE, warning=FALSE}
+resting_location_VF_area1 <- ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf_area, day_since_trial_start == 1),
+          color = "black", fill = NA) +
+  geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1,!is.na(resting_threshold)),
+          alpha = 0.01) +
+  geom_sf(data = control_time_clip_AreaVF1 ,colour = "skyblue4", alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF area 1")
+
+
+resting_location_VF_area1_2 <-ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf_area, day_since_trial_start == 5),
+          color = "black", fill = NA) +
+  geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1_2,!is.na(resting_threshold)),
+          alpha = 0.01) +
+  geom_sf(data = control_time_clip_AreaVF2 ,colour = "skyblue4", alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF area 2")
+
+
+resting_location_VF_area1_2_3 <-ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf_area, day_since_trial_start == 10),
+          color = "black", fill = NA) +
+  geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1_2_3,!is.na(resting_threshold)),
+          alpha = 0.01) +
+  geom_sf(data = control_time_clip_AreaVF3 ,colour = "skyblue4", alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF area 3")
+
+
+resting_location_VF_area1_2_3_4 <-ggplot() +
+  geom_sf(data = long_plains, color = "black", fill = NA) +
+  geom_sf(data = filter(long_plains_Vf_area, day_since_trial_start == 14),
+          color = "black", fill = NA) +
+  #geom_sf(data = long_plains_Area_Vf1_VF2_Vf3_Vf4, color = "green", fill = NA) +
+  geom_sf(data = filter(week1_2_3_rest_dis_clip_AreaVF1_2_3_4,!is.na(resting_threshold)),
+          alpha = 0.01) +
+  geom_sf(data = control_time_clip_AreaVF4 ,colour = "skyblue4", alpha = 0.01) +
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank())+
+  labs(title= "VF area 4")
+
+
+
+
+```
+
+
+```{r write up resting spots results_version1, echo=FALSE, message=FALSE, warning=FALSE}
+
+library("cowplot")
+resting_location_by_area <- plot_grid(resting_location_VF_area1, 
+          resting_location_VF_area1_2, 
+          resting_location_VF_area1_2_3, 
+          resting_location_VF_area1_2_3_4)#, #if you want to add the below code remove the bracket and replace with ,
+          #labels = c("A", "B", "C", "D"),
+          #ncol = 2, nrow = 2)
+resting_location_by_area
+
+
+```
