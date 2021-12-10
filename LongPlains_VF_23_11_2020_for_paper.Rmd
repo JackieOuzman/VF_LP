@@ -2666,7 +2666,7 @@ Jackie: One approach would be to produce a heat map of where the animals rested.
 2.plot this onto a grid and count the observation in the grid for all animals in the mob on each day.
 
 
-### refer to R markdown test error 
+### refer to R markdown Resting_spots_Dec2021_analysis.Rmd 
 The below code won't run.
 I can get all working in another document.
 Very frustrating!
